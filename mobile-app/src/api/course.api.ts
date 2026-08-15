@@ -25,6 +25,26 @@ export interface CreateCoursePayload {
   aiProvider: AIProvider;
 }
 
+export interface StudyPlanDay {
+  dayNumber: number;
+  date: string;
+  topic: string;
+  subtopics: string[];
+  estimatedMinutes: number;
+  status: 'pending' | 'completed';
+  content?: string | null;
+  keyConcepts?: string[];
+  tips?: string[];
+}
+
+export interface StudyPlan {
+  _id: string;
+  course: string;
+  totalDays: number;
+  days: StudyPlanDay[];
+  generationStatus: 'pending' | 'completed' | 'failed';
+}
+
 export const createCourseRequest = (payload: CreateCoursePayload) =>
   api.post<{ course: Course }>('/courses', payload).then((r) => r.data.course);
 
@@ -35,3 +55,9 @@ export const getCourseByIdRequest = (id: string) =>
   api.get<{ course: Course }>(`/courses/${id}`).then((r) => r.data.course);
 
 export const deleteCourseRequest = (id: string) => api.delete(`/courses/${id}`);
+
+export const generatePlanRequest = (courseId: string) =>
+  api.post<{ plan: StudyPlan }>(`/courses/${courseId}/generate-plan`).then((r) => r.data.plan);
+
+export const getPlanRequest = (courseId: string) =>
+  api.get<{ plan: StudyPlan }>(`/courses/${courseId}/plan`).then((r) => r.data.plan);

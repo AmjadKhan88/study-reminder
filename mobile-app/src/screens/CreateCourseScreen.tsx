@@ -4,7 +4,7 @@ import { useAppTheme } from '../context/ThemeContext';
 import AppTextInput from '../components/AppTextInput';
 import AppButton from '../components/AppButton';
 import AppDropdown from '../components/AppDropdown';
-import { createCourseRequest, AIProvider, DurationUnit } from '../api/course.api';
+import { createCourseRequest, generatePlanRequest, AIProvider, DurationUnit } from '../api/course.api';
 import { spacing } from '../theme/spacing';
 
 const AI_PROVIDER_OPTIONS = [
@@ -26,6 +26,7 @@ export default function CreateCourseScreen({ navigation }: any) {
   const [durationUnit, setDurationUnit] = useState<DurationUnit>('months');
   const [aiProvider, setAiProvider] = useState<AIProvider>('gemini');
   const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('Create Course');
   const [error, setError] = useState<string | null>(null);
 
   const parsedDuration = parseInt(durationValue, 10);
@@ -35,18 +36,24 @@ export default function CreateCourseScreen({ navigation }: any) {
     setError(null);
     setSubmitting(true);
     try {
-      await createCourseRequest({
+      setStatusMessage('Creating course...');
+      const course = await createCourseRequest({
         title: title.trim(),
         outline: outline.trim(),
         durationValue: parsedDuration,
         durationUnit,
         aiProvider,
       });
-      navigation.goBack();
+
+      setStatusMessage('Generating your study plan (this can take up to 20s)...');
+      await generatePlanRequest(course._id);
+
+      navigation.replace('CourseDetail', { courseId: course._id, courseTitle: course.title });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Could not create course. Please try again.');
     } finally {
       setSubmitting(false);
+      setStatusMessage('Create Course');
     }
   };
 
@@ -86,6 +93,9 @@ export default function CreateCourseScreen({ navigation }: any) {
 
         <AppDropdown label="AI provider" value={aiProvider} options={AI_PROVIDER_OPTIONS} onChange={(v) => setAiProvider(v as AIProvider)} />
 
+        {submitting && (
+          <Text style={[styles.status, { color: theme.textSecondary }]}>{statusMessage}</Text>
+        )}
         {!!error && <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>}
 
         <AppButton title="Create Course" onPress={handleSubmit} loading={submitting} disabled={!canSubmit} />
@@ -98,5 +108,6 @@ const styles = StyleSheet.create({
   container: { padding: spacing.lg, paddingBottom: spacing.xxl },
   subtitle: { fontSize: 14, marginBottom: spacing.lg },
   row: { flexDirection: 'row' },
+  status: { fontSize: 13, marginBottom: spacing.sm, textAlign: 'center' },
   error: { fontSize: 14, marginBottom: spacing.md },
 });

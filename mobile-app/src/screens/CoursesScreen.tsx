@@ -24,7 +24,6 @@ export default function CoursesScreen({ navigation }: any) {
     }
   }, []);
 
-  // Refetch every time this screen comes into focus (e.g. after creating a course)
   useFocusEffect(
     useCallback(() => {
       loadCourses();
@@ -58,9 +57,7 @@ export default function CoursesScreen({ navigation }: any) {
           renderItem={({ item }) => (
             <CourseCard
               course={item}
-              onPress={() => {
-                // Day 5/6: navigate to course detail / day-wise study plan
-              }}
+              onPress={() => navigation.navigate('CourseDetail', { courseId: item._id, courseTitle: item.title })}
             />
           )}
         />
