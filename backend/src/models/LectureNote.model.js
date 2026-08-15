@@ -4,7 +4,7 @@ const lectureNoteSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true, index: true },
-    dayNumber: { type: Number, default: null }, // null = general course-wide note
+    dayNumber: { type: Number, default: null },
     title: { type: String, required: true },
     originalFilename: { type: String, required: true },
     fileType: { type: String, required: true },
@@ -12,6 +12,7 @@ const lectureNoteSchema = new mongoose.Schema(
     status: { type: String, enum: ['processing', 'ready', 'failed'], default: 'processing' },
     errorMessage: { type: String, default: null },
     extractedCharCount: { type: Number, default: 0 },
+    truncated: { type: Boolean, default: false },
     chunkCount: { type: Number, default: 0 },
     summary: { type: String, default: null },
     keyConcepts: [String],

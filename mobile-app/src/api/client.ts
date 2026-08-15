@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { tokenStore } from './tokenStore';
 import { API_BASE_URL, REFRESH_TOKEN_KEY } from '../utils/constants';
 
-export const api = axios.create({ baseURL: API_BASE_URL });
+export const api = axios.create({ baseURL: API_BASE_URL, timeout: 60000 }); // 60s — generous for AI calls, but not infinite
 
 api.interceptors.request.use((config) => {
   const token = tokenStore.get();

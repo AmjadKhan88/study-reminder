@@ -1,5 +1,8 @@
 const { randomUUID } = require('crypto');
 const { client, COLLECTION_NAME } = require('../config/qdrant');
+const { withTimeout } = require('../utils/withTimeout');
+
+const QDRANT_TIMEOUT_MS = 15000;
 
 async function upsertChunks({ userId, courseId, noteId, dayNumber, chunks, vectors }) {
   const points = chunks.map((text, i) => ({
@@ -15,14 +18,17 @@ async function upsertChunks({ userId, courseId, noteId, dayNumber, chunks, vecto
     },
   }));
 
-  const BATCH_SIZE = 100; // Qdrant's recommended upsert batch size
+  const BATCH_SIZE = 100;
   for (let i = 0; i < points.length; i += BATCH_SIZE) {
-    await client.upsert(COLLECTION_NAME, { points: points.slice(i, i + BATCH_SIZE) });
+    console.log(`Upserting to Qdrant: points ${i}-${Math.min(i + BATCH_SIZE, points.length)} of ${points.length}...`);
+    await withTimeout(
+      client.upsert(COLLECTION_NAME, { points: points.slice(i, i + BATCH_SIZE) }),
+      QDRANT_TIMEOUT_MS,
+      'Qdrant upsert'
+    );
   }
 }
 
-// Every search is scoped to userId + courseId — this IS the multi-tenant
-// isolation boundary in the vector DB, mirroring the Mongo query pattern.
 async function searchSimilar({ userId, courseId, queryVector, limit = 5, noteId = null }) {
   const must = [
     { key: 'userId', match: { value: String(userId) } },
@@ -30,20 +36,21 @@ async function searchSimilar({ userId, courseId, queryVector, limit = 5, noteId 
   ];
   if (noteId) must.push({ key: 'noteId', match: { value: String(noteId) } });
 
-  const result = await client.search(COLLECTION_NAME, {
-    vector: queryVector,
-    limit,
-    filter: { must },
-    with_payload: true,
-  });
+  const result = await withTimeout(
+    client.search(COLLECTION_NAME, { vector: queryVector, limit, filter: { must }, with_payload: true }),
+    QDRANT_TIMEOUT_MS,
+    'Qdrant search'
+  );
 
   return result.map((r) => ({ text: r.payload.text, score: r.score, noteId: r.payload.noteId }));
 }
 
 async function deleteByNote(noteId) {
-  await client.delete(COLLECTION_NAME, {
-    filter: { must: [{ key: 'noteId', match: { value: String(noteId) } }] },
-  });
+  await withTimeout(
+    client.delete(COLLECTION_NAME, { filter: { must: [{ key: 'noteId', match: { value: String(noteId) } }] } }),
+    QDRANT_TIMEOUT_MS,
+    'Qdrant delete'
+  );
 }
 
 module.exports = { upsertChunks, searchSimilar, deleteByNote };

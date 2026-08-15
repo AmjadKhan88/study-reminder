@@ -14,6 +14,7 @@ export interface LectureNote {
   summary?: string | null;
   keyConcepts?: string[];
   chunkCount: number;
+  truncated?: boolean;
   createdAt: string;
 }
 

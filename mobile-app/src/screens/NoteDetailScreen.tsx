@@ -37,6 +37,11 @@ export default function NoteDetailScreen({ route, navigation }: any) {
       <Text style={[styles.meta, { color: theme.textSecondary }]}>
         {note.originalFilename} · {note.chunkCount} sections indexed
       </Text>
+      {note.truncated && (
+        <Text style={{ color: theme.accent, fontSize: 12, marginBottom: spacing.md }}>
+          ⚠️ This file was very long — only the first portion was processed.
+        </Text>
+      )}
 
       <Markdown style={{ body: { color: theme.textPrimary, fontSize: 15, lineHeight: 22 } }}>
         {note.summary || ''}
