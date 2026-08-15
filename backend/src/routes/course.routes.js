@@ -2,10 +2,12 @@ const router = require('express').Router();
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const requireAuth = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const courseCtrl = require('../controllers/course.controller');
 const planCtrl = require('../controllers/studyPlan.controller');
 const flashcardCtrl = require('../controllers/flashcard.controller');
 const quizCtrl = require('../controllers/quiz.controller');
+const noteCtrl = require('../controllers/lectureNote.controller');
 
 router.use(requireAuth);
 
@@ -36,5 +38,11 @@ router.get('/:id/days/:dayNumber/flashcards', flashcardCtrl.getFlashcards);
 
 router.get('/:id/days/:dayNumber/quiz', quizCtrl.getQuiz);
 router.post('/:id/days/:dayNumber/quiz/submit', quizCtrl.submitQuiz);
+
+router.post('/:id/notes', upload.single('file'), noteCtrl.uploadNote);
+router.get('/:id/notes', noteCtrl.getNotes);
+router.get('/:id/notes/:noteId', noteCtrl.getNoteById);
+router.delete('/:id/notes/:noteId', noteCtrl.deleteNote);
+router.post('/:id/notes/ask', noteCtrl.askQuestion);
 
 module.exports = router;
