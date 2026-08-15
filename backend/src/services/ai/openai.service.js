@@ -15,4 +15,13 @@ async function generateWeeklyBreakdown({ title, outline, totalWeeks }) {
   return parseJsonArrayResponse(completion.choices[0].message.content);
 }
 
-module.exports = { generateWeeklyBreakdown };
+async function generateJSON(prompt) {
+  const completion = await client.chat.completions.create({
+    model: MODEL_NAME,
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.5,
+  });
+  return completion.choices[0].message.content;
+}
+
+module.exports = { generateWeeklyBreakdown, generateJSON };

@@ -4,6 +4,8 @@ const validate = require('../middleware/validate');
 const requireAuth = require('../middleware/auth');
 const courseCtrl = require('../controllers/course.controller');
 const planCtrl = require('../controllers/studyPlan.controller');
+const flashcardCtrl = require('../controllers/flashcard.controller');
+const quizCtrl = require('../controllers/quiz.controller');
 
 router.use(requireAuth);
 
@@ -26,5 +28,13 @@ router.delete('/:id', courseCtrl.deleteCourse);
 
 router.post('/:id/generate-plan', planCtrl.generatePlan);
 router.get('/:id/plan', planCtrl.getPlan);
+
+router.get('/:id/days/:dayNumber', planCtrl.getDayContent);
+router.patch('/:id/days/:dayNumber/complete', planCtrl.markDayComplete);
+
+router.get('/:id/days/:dayNumber/flashcards', flashcardCtrl.getFlashcards);
+
+router.get('/:id/days/:dayNumber/quiz', quizCtrl.getQuiz);
+router.post('/:id/days/:dayNumber/quiz/submit', quizCtrl.submitQuiz);
 
 module.exports = router;
