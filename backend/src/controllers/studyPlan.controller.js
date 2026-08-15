@@ -24,7 +24,8 @@ exports.getPlan = async (req, res, next) => {
 
 exports.getDayContent = async (req, res, next) => {
   try {
-    const day = await getOrGenerateDayContent(req.params.id, req.userId, req.params.dayNumber);
+    const forceRegenerate = req.query.regenerate === 'true';
+    const day = await getOrGenerateDayContent(req.params.id, req.userId, req.params.dayNumber, forceRegenerate);
     res.json({ day });
   } catch (err) {
     if (err.message.includes('not found')) return res.status(404).json({ message: err.message });

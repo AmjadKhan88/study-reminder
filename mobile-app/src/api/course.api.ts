@@ -62,8 +62,12 @@ export const generatePlanRequest = (courseId: string) =>
 export const getPlanRequest = (courseId: string) =>
   api.get<{ plan: StudyPlan }>(`/courses/${courseId}/plan`).then((r) => r.data.plan);
 
-export const getDayContentRequest = (courseId: string, dayNumber: number) =>
-  api.get<{ day: StudyPlanDay }>(`/courses/${courseId}/days/${dayNumber}`).then((r) => r.data.day);
+export const getDayContentRequest = (courseId: string, dayNumber: number, regenerate = false) =>
+  api
+    .get<{ day: StudyPlanDay }>(`/courses/${courseId}/days/${dayNumber}`, {
+      params: regenerate ? { regenerate: 'true' } : undefined,
+    })
+    .then((r) => r.data.day);
 
 export const markDayCompleteRequest = (courseId: string, dayNumber: number) =>
   api.patch<{ day: StudyPlanDay }>(`/courses/${courseId}/days/${dayNumber}/complete`).then((r) => r.data.day);

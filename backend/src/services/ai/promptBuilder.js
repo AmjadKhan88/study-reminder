@@ -18,17 +18,30 @@ The array must have exactly ${totalWeeks} items, weekNumber from 1 to ${totalWee
 }
 
 function buildDayContentPrompt({ courseTitle, topic, subtopics, dayNumber }) {
-  return `You are an expert tutor writing today's study material for a student.
+  return `You are a friendly, expert tutor writing today's study material for a student, in the style of a well-formatted chat answer (like ChatGPT) — NOT a dense textbook paragraph.
 
 Course: ${courseTitle}
 Day ${dayNumber} topic: ${topic}
 Focus subtopic(s): ${subtopics.join(', ')}
 
-Write clear, well-structured study content a student can read and understand in about 30-45 minutes, covering the subtopic(s) in depth with a concrete example where useful. Also list the key concepts and 2-3 practical tips for retaining this material.
+Write the "content" field as a Markdown-formatted string. Follow these rules strictly:
+- Start with a short 1-2 sentence friendly intro (no heading for this part).
+- Break the material into 2-4 sections, each with a "## " heading that includes one relevant emoji (e.g. "## 🔑 Key Idea", "## 🧩 How It Works", "## 💡 Example", "## ⚠️ Common Mistake").
+- Keep paragraphs SHORT — 2-4 sentences max. Never a wall of text.
+- Use "- " bullet lists for enumerable facts, steps, or properties.
+- Use **bold** around important terms the first time they appear.
+- Include at least one concrete worked example inside its own "## 💡 Example" section.
+- Leave a blank line between every paragraph, heading, and list item block for readability.
+- Total length: 350-600 words.
+- Do NOT include a top-level title/H1 (the app already shows the topic name separately).
 
-Respond with ONLY valid JSON, no markdown formatting, no code fences, in this exact shape:
+Also produce:
+- keyConcepts: 3-5 short bullet-style strings (just the term/idea, not full sentences)
+- tips: 2-3 short, encouraging, practical study tips specific to this material
+
+Respond with ONLY valid JSON, no code fences around the JSON itself, in this exact shape:
 {
-  "content": "string (plain text, use \\n\\n between paragraphs, 300-600 words)",
+  "content": "string (markdown as described above, use \\n\\n between blocks)",
   "keyConcepts": ["string", "string", "string"],
   "tips": ["string", "string"]
 }`;

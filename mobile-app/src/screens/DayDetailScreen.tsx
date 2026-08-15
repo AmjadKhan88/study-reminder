@@ -1,33 +1,39 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import Markdown from 'react-native-markdown-display';
 import { useAppTheme } from '../context/ThemeContext';
 import { getDayContentRequest, markDayCompleteRequest, StudyPlanDay } from '../api/course.api';
 import AppButton from '../components/AppButton';
 import { spacing, radius } from '../theme/spacing';
+import { Theme } from '../theme/colors';
 
 export default function DayDetailScreen({ route, navigation }: any) {
   const { courseId, dayNumber } = route.params;
   const { theme } = useAppTheme();
   const [day, setDay] = useState<StudyPlanDay | null>(null);
   const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getDayContentRequest(courseId, dayNumber);
-      setDay(data);
-      navigation.setOptions({ title: `Day ${dayNumber}` });
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Could not load this day\u2019s content.');
-    } finally {
-      setLoading(false);
-    }
-  }, [courseId, dayNumber]);
+  const load = useCallback(
+    async (regenerate = false) => {
+      regenerate ? setRegenerating(true) : setLoading(true);
+      setError(null);
+      try {
+        const data = await getDayContentRequest(courseId, dayNumber, regenerate);
+        setDay(data);
+        navigation.setOptions({ title: `Day ${dayNumber}` });
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Could not load this day's content.");
+      } finally {
+        setLoading(false);
+        setRegenerating(false);
+      }
+    },
+    [courseId, dayNumber]
+  );
 
   useEffect(() => {
     load();
@@ -66,14 +72,25 @@ export default function DayDetailScreen({ route, navigation }: any) {
 
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.container}>
-      <Text style={[styles.topic, { color: theme.textPrimary }]}>{day.topic}</Text>
-      <Text style={[styles.subtopics, { color: theme.textSecondary }]}>{day.subtopics.join(' · ')}</Text>
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.topic, { color: theme.textPrimary }]}>{day.topic}</Text>
+          <Text style={[styles.subtopics, { color: theme.textSecondary }]}>{day.subtopics.join(' · ')}</Text>
+        </View>
+        <Pressable onPress={() => load(true)} disabled={regenerating} style={styles.regenBtn}>
+          {regenerating ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : (
+            <Ionicons name="refresh" size={20} color={theme.primary} />
+          )}
+        </Pressable>
+      </View>
 
-      <Text style={[styles.content, { color: theme.textPrimary }]}>{day.content}</Text>
+      <Markdown style={buildMarkdownStyles(theme)}>{day.content || ''}</Markdown>
 
       {!!day.keyConcepts?.length && (
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Key Concepts</Text>
+          <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>📌 Key Concepts</Text>
           {day.keyConcepts.map((c, i) => (
             <View key={i} style={styles.bulletRow}>
               <Ionicons name="ellipse" size={6} color={theme.primary} style={{ marginTop: 7 }} />
@@ -85,7 +102,7 @@ export default function DayDetailScreen({ route, navigation }: any) {
 
       {!!day.tips?.length && (
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Study Tips</Text>
+          <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>💡 Study Tips</Text>
           {day.tips.map((t, i) => (
             <View key={i} style={styles.bulletRow}>
               <Ionicons name="bulb-outline" size={16} color={theme.accent} style={{ marginTop: 2 }} />
@@ -121,14 +138,64 @@ export default function DayDetailScreen({ route, navigation }: any) {
   );
 }
 
+// Maps our app's theme tokens onto react-native-markdown-display's style API,
+// so headings/bold/bullets/code all match light & dark mode automatically.
+function buildMarkdownStyles(theme: Theme) {
+  return StyleSheet.create({
+    body: { color: theme.textPrimary, fontSize: 15, lineHeight: 23 },
+    paragraph: { marginTop: 0, marginBottom: spacing.md },
+    heading2: {
+      color: theme.textPrimary,
+      fontSize: 18,
+      fontWeight: '700',
+      marginTop: spacing.lg,
+      marginBottom: spacing.sm,
+    },
+    strong: { fontWeight: '700', color: theme.textPrimary },
+    bullet_list: { marginBottom: spacing.md },
+    ordered_list: { marginBottom: spacing.md },
+    list_item: { flexDirection: 'row', marginBottom: 6 },
+    bullet_list_icon: { color: theme.primary, marginRight: 8, fontSize: 15 },
+    ordered_list_icon: { color: theme.primary, marginRight: 8, fontSize: 15 },
+    code_inline: {
+      backgroundColor: theme.surfaceAlt,
+      color: theme.accent,
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+      borderRadius: 4,
+      fontSize: 14,
+    },
+    code_block: {
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: radius.sm,
+      padding: spacing.sm,
+    },
+    fence: {
+      backgroundColor: theme.surfaceAlt,
+      borderRadius: radius.sm,
+      padding: spacing.sm,
+    },
+    blockquote: {
+      backgroundColor: theme.surfaceAlt,
+      borderLeftWidth: 3,
+      borderLeftColor: theme.primary,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.sm,
+    },
+    hr: { backgroundColor: theme.border, height: 1, marginVertical: spacing.md },
+  });
+}
+
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   loadingText: { marginTop: spacing.md, fontSize: 14 },
   container: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: spacing.sm },
+  regenBtn: { padding: spacing.xs, marginLeft: spacing.sm },
   topic: { fontSize: 22, fontWeight: '700' },
-  subtopics: { fontSize: 14, marginTop: 4, marginBottom: spacing.lg },
-  content: { fontSize: 15, lineHeight: 23, marginBottom: spacing.lg },
-  card: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
+  subtopics: { fontSize: 14, marginTop: 4 },
+  card: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md, marginTop: spacing.sm },
   cardTitle: { fontSize: 15, fontWeight: '700', marginBottom: spacing.sm },
   bulletRow: { flexDirection: 'row', marginBottom: 6, paddingRight: spacing.sm },
   bulletText: { fontSize: 14, marginLeft: 8, flex: 1, lineHeight: 20 },

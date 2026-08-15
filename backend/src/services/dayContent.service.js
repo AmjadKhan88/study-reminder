@@ -4,7 +4,7 @@ const { getAIProvider } = require('./ai');
 const { buildDayContentPrompt } = require('./ai/promptBuilder');
 const { parseJsonObjectResponse } = require('./ai/parseUtils');
 
-async function getOrGenerateDayContent(courseId, userId, dayNumber) {
+async function getOrGenerateDayContent(courseId, userId, dayNumber, forceRegenerate = false) {
   const course = await Course.findOne({ _id: courseId, user: userId });
   if (!course) throw new Error('Course not found');
 
@@ -14,7 +14,7 @@ async function getOrGenerateDayContent(courseId, userId, dayNumber) {
   const day = plan.days.find((d) => d.dayNumber === Number(dayNumber));
   if (!day) throw new Error('Day not found in plan');
 
-  if (day.content) return day; // already generated — serve from cache, no AI call
+  if (day.content && !forceRegenerate) return day; // cached — skip AI call
 
   const provider = getAIProvider(course.aiProvider);
   const prompt = buildDayContentPrompt({
