@@ -6,6 +6,9 @@ import CourseDetailScreen from '../screens/CourseDetailScreen';
 import DayDetailScreen from '../screens/DayDetailScreen';
 import FlashcardsScreen from '../screens/FlashcardsScreen';
 import QuizScreen from '../screens/QuizScreen';
+import NotesListScreen from '../screens/NotesListScreen';
+import NoteDetailScreen from '../screens/NoteDetailScreen';
+import AskNotesScreen from '../screens/AskNotesScreen';
 import { useAppTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -26,6 +29,9 @@ export default function CoursesStackNavigator() {
       <Stack.Screen name="DayDetail" component={DayDetailScreen} />
       <Stack.Screen name="Flashcards" component={FlashcardsScreen} />
       <Stack.Screen name="Quiz" component={QuizScreen} />
+      <Stack.Screen name="NotesList" component={NotesListScreen} options={{ title: 'Lecture Notes' }} />
+      <Stack.Screen name="NoteDetail" component={NoteDetailScreen} />
+      <Stack.Screen name="AskNotes" component={AskNotesScreen} options={{ title: 'Ask AI' }} />
     </Stack.Navigator>
   );
 }

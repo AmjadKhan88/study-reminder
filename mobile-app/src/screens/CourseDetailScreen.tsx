@@ -15,7 +15,18 @@ export default function CourseDetailScreen({ route, navigation }: any) {
 
   useFocusEffect(
     useCallback(() => {
-      navigation.setOptions({ title: courseTitle });
+      navigation.setOptions({
+  title: courseTitle,
+  headerRight: () => (
+    <Ionicons
+      name="document-text-outline"
+      size={22}
+      color={theme.textPrimary}
+      style={{ marginRight: 4 }}
+      onPress={() => navigation.navigate('NotesList', { courseId })}
+    />
+  ),
+});
       let cancelled = false;
       (async () => {
         setLoading(true);
