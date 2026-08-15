@@ -1,10 +1,10 @@
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAppTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import AuthNavigator from './AuthNavigator';
-
-const Stack = createNativeStackNavigator();
+import AppTabs from './AppTabs';
 
 const navFonts = {
   regular: { fontFamily: 'System', fontWeight: '400' as const },
@@ -15,6 +15,7 @@ const navFonts = {
 
 export default function RootNavigator() {
   const { theme } = useAppTheme();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const navTheme = {
     dark: theme.mode === 'dark',
@@ -29,11 +30,17 @@ export default function RootNavigator() {
     fonts: navFonts,
   };
 
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.background }}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer theme={navTheme}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Auth" component={AuthNavigator} />
-      </Stack.Navigator>
+      {isAuthenticated ? <AppTabs /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }
