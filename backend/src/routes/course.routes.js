@@ -2,9 +2,10 @@ const router = require('express').Router();
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const requireAuth = require('../middleware/auth');
-const ctrl = require('../controllers/course.controller');
+const courseCtrl = require('../controllers/course.controller');
+const planCtrl = require('../controllers/studyPlan.controller');
 
-router.use(requireAuth); // every route below requires a valid access token
+router.use(requireAuth);
 
 router.post(
   '/',
@@ -16,11 +17,14 @@ router.post(
     body('aiProvider').isIn(['gemini', 'openai', 'groq']).withMessage('Invalid AI provider'),
   ],
   validate,
-  ctrl.createCourse
+  courseCtrl.createCourse
 );
 
-router.get('/', ctrl.getMyCourses);
-router.get('/:id', ctrl.getCourseById);
-router.delete('/:id', ctrl.deleteCourse);
+router.get('/', courseCtrl.getMyCourses);
+router.get('/:id', courseCtrl.getCourseById);
+router.delete('/:id', courseCtrl.deleteCourse);
+
+router.post('/:id/generate-plan', planCtrl.generatePlan);
+router.get('/:id/plan', planCtrl.getPlan);
 
 module.exports = router;
