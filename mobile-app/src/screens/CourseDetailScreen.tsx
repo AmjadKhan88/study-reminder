@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
 import { getPlanRequest, StudyPlan, StudyPlanDay } from '../api/course.api';
 import { spacing, radius } from '../theme/spacing';
@@ -59,17 +60,31 @@ export default function CourseDetailScreen({ route, navigation }: any) {
       contentContainerStyle={{ padding: spacing.lg }}
       data={plan.days}
       keyExtractor={(item) => String(item.dayNumber)}
-      renderItem={({ item }) => <DayRow day={item} />}
+      renderItem={({ item }) => (
+        <DayRow day={item} onPress={() => navigation.navigate('DayDetail', { courseId, dayNumber: item.dayNumber })} />
+      )}
     />
   );
 }
 
-function DayRow({ day }: { day: StudyPlanDay }) {
+function DayRow({ day, onPress }: { day: StudyPlanDay; onPress: () => void }) {
   const { theme } = useAppTheme();
+  const isCompleted = day.status === 'completed';
+
   return (
-    <View style={[styles.dayRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-      <View style={[styles.dayBadge, { backgroundColor: theme.surfaceAlt }]}>
-        <Text style={{ color: theme.textPrimary, fontWeight: '700' }}>{day.dayNumber}</Text>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.dayRow,
+        { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.85 : 1 },
+      ]}
+    >
+      <View style={[styles.dayBadge, { backgroundColor: isCompleted ? theme.success : theme.surfaceAlt }]}>
+        {isCompleted ? (
+          <Ionicons name="checkmark" size={18} color={theme.white ?? '#fff'} />
+        ) : (
+          <Text style={{ color: theme.textPrimary, fontWeight: '700' }}>{day.dayNumber}</Text>
+        )}
       </View>
       <View style={{ flex: 1, marginLeft: spacing.md }}>
         <Text style={{ color: theme.textPrimary, fontWeight: '600', fontSize: 15 }}>{day.topic}</Text>
@@ -77,7 +92,8 @@ function DayRow({ day }: { day: StudyPlanDay }) {
           {day.subtopics.join(' · ')}
         </Text>
       </View>
-    </View>
+      <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+    </Pressable>
   );
 }
 
