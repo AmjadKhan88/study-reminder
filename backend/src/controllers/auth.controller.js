@@ -26,6 +26,7 @@ exports.register = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, cookieOpts);
     res.status(201).json({
       accessToken,
+      refreshToken, // mobile client stores this in SecureStore
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
@@ -49,6 +50,7 @@ exports.login = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, cookieOpts);
     res.json({
       accessToken,
+      refreshToken,
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
@@ -58,7 +60,7 @@ exports.login = async (req, res, next) => {
 
 exports.refresh = async (req, res, next) => {
   try {
-    const token = req.cookies.refreshToken;
+    const token = req.body.refreshToken || req.cookies.refreshToken;
     if (!token) return res.status(401).json({ message: 'No refresh token' });
 
     const payload = verifyRefreshToken(token);
@@ -77,7 +79,7 @@ exports.refresh = async (req, res, next) => {
 
 exports.logout = async (req, res, next) => {
   try {
-    const token = req.cookies.refreshToken;
+    const token = req.body.refreshToken || req.cookies.refreshToken;
     if (token) {
       const payload = verifyRefreshToken(token);
       await User.findByIdAndUpdate(payload.sub, { refreshTokenHash: null });
@@ -87,4 +89,14 @@ exports.logout = async (req, res, next) => {
   }
   res.clearCookie('refreshToken', cookieOpts);
   res.json({ message: 'Logged out' });
+};
+
+exports.me = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ user: { id: user._id, name: user.name, email: user.email } });
+  } catch (err) {
+    next(err);
+  }
 };
