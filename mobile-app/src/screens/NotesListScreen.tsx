@@ -9,6 +9,7 @@ import AppButton from '../components/AppButton';
 import { spacing, radius } from '../theme/spacing';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const POLL_INTERVAL_MS = 4000;
 
 export default function NotesListScreen({ route, navigation }: any) {
   const { courseId } = route.params;
@@ -16,12 +17,13 @@ export default function NotesListScreen({ route, navigation }: any) {
   const [notes, setNotes] = useState<LectureNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const notesRef = useRef<LectureNote[]>([]); // lets the polling interval always read the latest notes without restarting itself
 
   const load = useCallback(async () => {
     try {
       const data = await getNotesRequest(courseId);
       setNotes(data);
+      notesRef.current = data;
     } finally {
       setLoading(false);
     }
@@ -33,18 +35,17 @@ export default function NotesListScreen({ route, navigation }: any) {
     }, [load])
   );
 
+  // One interval for the entire time this screen is mounted — it decides
+  // each tick whether a re-fetch is needed, instead of being torn down and
+  // recreated every time `notes` changes (which was silently killing polling
+  // after the first tick).
   useEffect(() => {
-    const hasProcessing = notes.some((n) => n.status === 'processing');
-    if (hasProcessing && !pollRef.current) {
-      pollRef.current = setInterval(load, 4000);
-    } else if (!hasProcessing && pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [notes, load]);
+    const interval = setInterval(() => {
+      const hasProcessing = notesRef.current.some((n) => n.status === 'processing');
+      if (hasProcessing) load();
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [load]);
 
   const handlePickAndUpload = async () => {
     const result = await DocumentPicker.getDocumentAsync({

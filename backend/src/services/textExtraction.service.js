@@ -1,4 +1,4 @@
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const mammoth = require('mammoth');
 
 const MAX_EXTRACTED_CHARS = 300000; // ~150-200 pages of plain text — generous ceiling for lecture notes
@@ -7,8 +7,13 @@ async function extractText(buffer, mimetype) {
   let text;
 
   if (mimetype === 'application/pdf') {
-    const data = await pdfParse(buffer);
-    text = data.text;
+    const parser = new PDFParse({ data: buffer });
+    try {
+      const result = await parser.getText();
+      text = result.text;
+    } finally {
+      await parser.destroy(); // releases the underlying pdf.js document/worker resources
+    }
   } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     const result = await mammoth.extractRawText({ buffer });
     text = result.value;

@@ -6,8 +6,17 @@ function stripCodeFences(text) {
     .replace(/```\s*$/i, '');
 }
 
+// AI models sometimes emit a raw backslash inside a JSON string (e.g. from
+// markdown/LaTeX-style text like "\_" or "\(") that isn't a valid JSON escape
+// sequence. Valid escapes are \" \\ \/ \b \f \n \r \t \uXXXX — anything else
+// gets its backslash doubled so it parses as a literal backslash instead of
+// breaking JSON.parse entirely.
+function sanitizeInvalidEscapes(text) {
+  return text.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+}
+
 function parseJsonArrayResponse(text) {
-  const cleaned = stripCodeFences(text);
+  const cleaned = sanitizeInvalidEscapes(stripCodeFences(text));
   let parsed;
   try {
     parsed = JSON.parse(cleaned);
@@ -21,7 +30,7 @@ function parseJsonArrayResponse(text) {
 }
 
 function parseJsonObjectResponse(text) {
-  const cleaned = stripCodeFences(text);
+  const cleaned = sanitizeInvalidEscapes(stripCodeFences(text));
   let parsed;
   try {
     parsed = JSON.parse(cleaned);
