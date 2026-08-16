@@ -29,6 +29,9 @@ async function upsertChunks({ userId, courseId, noteId, dayNumber, chunks, vecto
   }
 }
 
+// Older client versions exposed `.search()`; current versions consolidated
+// everything (search/recommend/discover/hybrid) into `.query()`. The vector
+// goes under `query`, and results come back as `{ points: [...] }`.
 async function searchSimilar({ userId, courseId, queryVector, limit = 5, noteId = null }) {
   const must = [
     { key: 'userId', match: { value: String(userId) } },
@@ -37,12 +40,17 @@ async function searchSimilar({ userId, courseId, queryVector, limit = 5, noteId 
   if (noteId) must.push({ key: 'noteId', match: { value: String(noteId) } });
 
   const result = await withTimeout(
-    client.search(COLLECTION_NAME, { vector: queryVector, limit, filter: { must }, with_payload: true }),
+    client.query(COLLECTION_NAME, {
+      query: queryVector,
+      limit,
+      filter: { must },
+      with_payload: true,
+    }),
     QDRANT_TIMEOUT_MS,
-    'Qdrant search'
+    'Qdrant query'
   );
 
-  return result.map((r) => ({ text: r.payload.text, score: r.score, noteId: r.payload.noteId }));
+  return result.points.map((r) => ({ text: r.payload.text, score: r.score, noteId: r.payload.noteId }));
 }
 
 async function deleteByNote(noteId) {
