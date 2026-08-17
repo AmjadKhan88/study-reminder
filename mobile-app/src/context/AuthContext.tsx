@@ -2,7 +2,22 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { tokenStore } from '../api/tokenStore';
 import { REFRESH_TOKEN_KEY } from '../utils/constants';
-import { registerRequest, loginRequest, logoutRequest, meRequest, AuthUser, AuthResponse } from '../api/auth.api';
+import {
+  registerRequest,
+  loginRequest,
+  logoutRequest,
+  meRequest,
+  updateProfileRequest,
+  savePushTokenRequest,
+  AuthUser,
+  AuthResponse,
+} from '../api/auth.api';
+import {
+  requestNotificationPermission,
+  getExpoPushToken,
+  scheduleDailyReminder,
+  cancelDailyReminder,
+} from '../services/notifications';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -13,18 +28,34 @@ interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  updateNotificationSettings: (updates: { reminderTime?: string; notificationsEnabled?: boolean }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// Applies the user's saved preference to the device: schedules/cancels the
+// local reminder and (best-effort) registers the push token with the backend.
+async function syncNotificationsForUser(user: AuthUser) {
+  if (!user.notificationsEnabled) {
+    await cancelDailyReminder();
+    return;
+  }
+  const granted = await requestNotificationPermission();
+  if (!granted) return;
+
+  await scheduleDailyReminder(user.reminderTime);
+
+  const token = await getExpoPushToken();
+  if (token) {
+    savePushTokenRequest(token).catch(() => {}); // non-critical — local reminder already works regardless
+  }
+}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // On app start: if a refresh token exists, try to restore the session.
-  // meRequest() will get a 401 (no access token yet), the response
-  // interceptor auto-refreshes using the stored token, then retries.
   useEffect(() => {
     (async () => {
       try {
@@ -32,6 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!stored) return;
         const { user: me } = await meRequest();
         setUser(me);
+        syncNotificationsForUser(me);
       } catch {
         await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
         tokenStore.set(null);
@@ -45,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     tokenStore.set(data.accessToken);
     await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refreshToken);
     setUser(data.user);
+    syncNotificationsForUser(data.user);
   };
 
   const login = async (email: string, password: string) => {
@@ -74,16 +107,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await logoutRequest(stored);
     } catch {
-      // ignore network errors on logout — clear local session regardless
+      // ignore network errors on logout
     }
+    await cancelDailyReminder();
     tokenStore.set(null);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     setUser(null);
   };
 
+  const updateNotificationSettings = async (updates: { reminderTime?: string; notificationsEnabled?: boolean }) => {
+    const updated = await updateProfileRequest(updates);
+    setUser(updated);
+    await syncNotificationsForUser(updated);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isAuthenticated: !!user, error, login, register, logout, clearError: () => setError(null) }}
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: !!user,
+        error,
+        login,
+        register,
+        logout,
+        clearError: () => setError(null),
+        updateNotificationSettings,
+      }}
     >
       {children}
     </AuthContext.Provider>
