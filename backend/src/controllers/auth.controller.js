@@ -6,8 +6,18 @@ const cookieOpts = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict',
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  maxAge: 30 * 24 * 60 * 60 * 1000,
 };
+
+function toPublicUser(user) {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    reminderTime: user.reminderTime,
+    notificationsEnabled: user.notificationsEnabled,
+  };
+}
 
 exports.register = async (req, res, next) => {
   try {
@@ -24,11 +34,7 @@ exports.register = async (req, res, next) => {
     await user.save();
 
     res.cookie('refreshToken', refreshToken, cookieOpts);
-    res.status(201).json({
-      accessToken,
-      refreshToken, // mobile client stores this in SecureStore
-      user: { id: user._id, name: user.name, email: user.email },
-    });
+    res.status(201).json({ accessToken, refreshToken, user: toPublicUser(user) });
   } catch (err) {
     next(err);
   }
@@ -48,11 +54,7 @@ exports.login = async (req, res, next) => {
     await user.save();
 
     res.cookie('refreshToken', refreshToken, cookieOpts);
-    res.json({
-      accessToken,
-      refreshToken,
-      user: { id: user._id, name: user.name, email: user.email },
-    });
+    res.json({ accessToken, refreshToken, user: toPublicUser(user) });
   } catch (err) {
     next(err);
   }
@@ -95,7 +97,34 @@ exports.me = async (req, res, next) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ user: { id: user._id, name: user.name, email: user.email } });
+    res.json({ user: toPublicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { reminderTime, notificationsEnabled } = req.body;
+    const update = {};
+    if (reminderTime !== undefined) update.reminderTime = reminderTime;
+    if (notificationsEnabled !== undefined) update.notificationsEnabled = notificationsEnabled;
+
+    const user = await User.findByIdAndUpdate(req.userId, update, { new: true, runValidators: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ user: toPublicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.savePushToken = async (req, res, next) => {
+  try {
+    const { pushToken } = req.body;
+    if (!pushToken) return res.status(400).json({ message: 'pushToken is required' });
+
+    await User.findByIdAndUpdate(req.userId, { pushToken });
+    res.json({ message: 'Push token saved' });
   } catch (err) {
     next(err);
   }

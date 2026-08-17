@@ -23,7 +23,10 @@ const userSchema = new mongoose.Schema(
       enum: ['light', 'dark', 'system'],
       default: 'system',
     },
-    refreshTokenHash: { type: String, select: false }, // rotated on each login
+    reminderTime: { type: String, default: '18:00' }, // "HH:mm", 24-hour, local device time
+    notificationsEnabled: { type: Boolean, default: true },
+    pushToken: { type: String, default: null }, // Expo push token — groundwork for future server-triggered pushes
+    refreshTokenHash: { type: String, select: false },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
