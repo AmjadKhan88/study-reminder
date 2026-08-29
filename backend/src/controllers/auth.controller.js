@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const User = require('../models/User.model');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/tokens');
 const { sendPasswordResetEmail } = require('../services/email.service');
+const { deleteAccountCompletely } = require('../services/account.service');
 
 const cookieOpts = {
   httpOnly: true,
@@ -25,12 +26,10 @@ function toPublicUser(user) {
 exports.register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ message: 'Email already in use' });
 
     const user = await User.create({ name, email, password });
-
     const accessToken = signAccessToken(user._id);
     const refreshToken = signRefreshToken(user._id);
     user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
@@ -89,9 +88,7 @@ exports.logout = async (req, res, next) => {
       const payload = verifyRefreshToken(token);
       await User.findByIdAndUpdate(payload.sub, { refreshTokenHash: null });
     }
-  } catch (_) {
-    // token already invalid — nothing to clean up
-  }
+  } catch (_) {}
   res.clearCookie('refreshToken', cookieOpts);
   res.json({ message: 'Logged out' });
 };
@@ -133,20 +130,16 @@ exports.savePushToken = async (req, res, next) => {
   }
 };
 
-// Always responds with the same generic message whether or not the email
-// exists — prevents attackers from using this endpoint to discover which
-// emails are registered.
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
     if (user) {
-      const code = String(crypto.randomInt(100000, 999999)); // 6-digit code
+      const code = String(crypto.randomInt(100000, 999999));
       user.resetPasswordCodeHash = await bcrypt.hash(code, 10);
       user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
       await user.save();
-
       sendPasswordResetEmail(user.email, user.name, code).catch((err) =>
         console.error('Failed to send reset email:', err.message)
       );
@@ -161,7 +154,6 @@ exports.forgotPassword = async (req, res, next) => {
 exports.resetPassword = async (req, res, next) => {
   try {
     const { email, code, newPassword } = req.body;
-
     const user = await User.findOne({ email }).select('+resetPasswordCodeHash +resetPasswordExpires');
     if (!user || !user.resetPasswordCodeHash || !user.resetPasswordExpires) {
       return res.status(400).json({ message: 'Invalid or expired code' });
@@ -173,13 +165,51 @@ exports.resetPassword = async (req, res, next) => {
     const matches = await bcrypt.compare(code, user.resetPasswordCodeHash);
     if (!matches) return res.status(400).json({ message: 'Invalid or expired code' });
 
-    user.password = newPassword; // pre-save hook hashes this
+    user.password = newPassword;
     user.resetPasswordCodeHash = null;
     user.resetPasswordExpires = null;
-    user.refreshTokenHash = null; // invalidate any existing sessions — force re-login everywhere
+    user.refreshTokenHash = null;
     await user.save();
 
     res.json({ message: 'Password reset successfully. Please log in.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Distinct from resetPassword: this is for a logged-in user who knows their
+// current password and just wants to change it, not a locked-out user.
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.userId).select('+password +refreshTokenHash');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const matches = await user.comparePassword(currentPassword);
+    if (!matches) return res.status(401).json({ message: 'Current password is incorrect' });
+
+    user.password = newPassword;
+    user.refreshTokenHash = null; // force re-login on all devices after a password change
+    await user.save();
+
+    res.json({ message: 'Password changed successfully. Please log in again.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteAccount = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    const user = await User.findById(req.userId).select('+password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const matches = await user.comparePassword(password);
+    if (!matches) return res.status(401).json({ message: 'Password is incorrect' });
+
+    await deleteAccountCompletely(req.userId);
+    res.clearCookie('refreshToken', cookieOpts);
+    res.json({ message: 'Your account and all associated data have been deleted.' });
   } catch (err) {
     next(err);
   }

@@ -20,7 +20,6 @@ async function upsertChunks({ userId, courseId, noteId, dayNumber, chunks, vecto
 
   const BATCH_SIZE = 100;
   for (let i = 0; i < points.length; i += BATCH_SIZE) {
-    console.log(`Upserting to Qdrant: points ${i}-${Math.min(i + BATCH_SIZE, points.length)} of ${points.length}...`);
     await withTimeout(
       client.upsert(COLLECTION_NAME, { points: points.slice(i, i + BATCH_SIZE) }),
       QDRANT_TIMEOUT_MS,
@@ -29,9 +28,6 @@ async function upsertChunks({ userId, courseId, noteId, dayNumber, chunks, vecto
   }
 }
 
-// Older client versions exposed `.search()`; current versions consolidated
-// everything (search/recommend/discover/hybrid) into `.query()`. The vector
-// goes under `query`, and results come back as `{ points: [...] }`.
 async function searchSimilar({ userId, courseId, queryVector, limit = 5, noteId = null }) {
   const must = [
     { key: 'userId', match: { value: String(userId) } },
@@ -40,12 +36,7 @@ async function searchSimilar({ userId, courseId, queryVector, limit = 5, noteId 
   if (noteId) must.push({ key: 'noteId', match: { value: String(noteId) } });
 
   const result = await withTimeout(
-    client.query(COLLECTION_NAME, {
-      query: queryVector,
-      limit,
-      filter: { must },
-      with_payload: true,
-    }),
+    client.query(COLLECTION_NAME, { query: queryVector, limit, filter: { must }, with_payload: true }),
     QDRANT_TIMEOUT_MS,
     'Qdrant query'
   );
@@ -61,4 +52,14 @@ async function deleteByNote(noteId) {
   );
 }
 
-module.exports = { upsertChunks, searchSimilar, deleteByNote };
+// Wipes every vector belonging to a user across all their courses/notes —
+// used when an account is deleted, so no orphaned data survives in Qdrant.
+async function deleteByUser(userId) {
+  await withTimeout(
+    client.delete(COLLECTION_NAME, { filter: { must: [{ key: 'userId', match: { value: String(userId) } }] } }),
+    QDRANT_TIMEOUT_MS,
+    'Qdrant delete by user'
+  );
+}
+
+module.exports = { upsertChunks, searchSimilar, deleteByNote, deleteByUser };

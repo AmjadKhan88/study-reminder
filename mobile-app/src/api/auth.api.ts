@@ -38,3 +38,9 @@ export const forgotPasswordRequest = (email: string) =>
 
 export const resetPasswordRequest = (email: string, code: string, newPassword: string) =>
   api.post<{ message: string }>('/auth/reset-password', { email, code, newPassword }).then((r) => r.data);
+
+export const changePasswordRequest = (currentPassword: string, newPassword: string) =>
+  api.post<{ message: string }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.data);
+
+export const deleteAccountRequest = (password: string) =>
+  api.post<{ message: string }>('/auth/delete-account', { password }).then((r) => r.data);

@@ -26,7 +26,7 @@ function formatTimeLabel(time: string): string {
   return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
 }
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }: any) {
   const { theme, mode, setMode } = useAppTheme();
   const { user, logout, updateNotificationSettings } = useAuth();
   const [showPicker, setShowPicker] = useState(false);
@@ -92,6 +92,11 @@ export default function ProfileScreen() {
       </View>
 
       <View style={{ marginTop: spacing.xl, gap: spacing.md }}>
+        <AppButton
+          title="Account Settings"
+          variant="secondary"
+          onPress={() => navigation.navigate('AccountSettings')}
+        />
         <AppButton
           title={`Theme: ${mode} (tap to change)`}
           variant="secondary"

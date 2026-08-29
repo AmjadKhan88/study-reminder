@@ -5,8 +5,6 @@ const validate = require('../middleware/validate');
 const requireAuth = require('../middleware/auth');
 const ctrl = require('../controllers/auth.controller');
 
-// Stricter limit specifically for password-reset endpoints — these are a
-// common brute-force/abuse target (guessing codes, spamming reset emails).
 const resetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5 });
 
 router.post(
@@ -61,6 +59,25 @@ router.post(
   ],
   validate,
   ctrl.resetPassword
+);
+
+router.post(
+  '/change-password',
+  requireAuth,
+  [
+    body('currentPassword').notEmpty().withMessage('Current password is required'),
+    body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
+  ],
+  validate,
+  ctrl.changePassword
+);
+
+router.post(
+  '/delete-account',
+  requireAuth,
+  [body('password').notEmpty().withMessage('Password is required to delete your account')],
+  validate,
+  ctrl.deleteAccount
 );
 
 module.exports = router;
