@@ -7,6 +7,7 @@ import { getMyCoursesRequest, Course } from '../api/course.api';
 import CourseCard from '../components/CourseCard';
 import AppButton from '../components/AppButton';
 import { spacing, radius } from '../theme/spacing';
+import EmptyState from '../components/EmptyState';
 
 export default function CoursesScreen({ navigation }: any) {
   const { theme } = useAppTheme();
@@ -40,14 +41,13 @@ export default function CoursesScreen({ navigation }: any) {
       </View>
 
       {!loading && courses.length === 0 ? (
-        <View style={styles.empty}>
-          <Ionicons name="book-outline" size={48} color={theme.textSecondary} />
-          <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No courses yet</Text>
-          <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-            Add your first course outline and let AI build your study plan.
-          </Text>
-          <AppButton title="Create Course" onPress={() => navigation.navigate('CreateCourse')} style={{ marginTop: spacing.lg, alignSelf: 'stretch' }} />
-        </View>
+        <EmptyState
+          icon="book-outline"
+          title="No courses yet"
+          subtitle="Add your first course outline and let AI build your study plan."
+          actionLabel="Create Course"
+          onAction={() => navigation.navigate('CreateCourse')}
+        />
       ) : (
         <FlatList
           data={courses}

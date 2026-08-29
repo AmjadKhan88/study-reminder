@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Pressable, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext';
 import { getProgressSummaryRequest, ProgressSummary } from '../api/stats.api';
 import StreakBadge from '../components/StreakBadge';
 import ProgressBar from '../components/ProgressBar';
+import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 import { spacing, radius } from '../theme/spacing';
 
 export default function HomeScreen({ navigation }: any) {
@@ -14,22 +16,26 @@ export default function HomeScreen({ navigation }: any) {
   const { user } = useAuth();
   const [summary, setSummary] = useState<ProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      const data = await getProgressSummaryRequest();
+      setSummary(data);
+    } catch {
+      setError("Couldn't load your progress right now.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      let cancelled = false;
-      (async () => {
-        try {
-          const data = await getProgressSummaryRequest();
-          if (!cancelled) setSummary(data);
-        } finally {
-          if (!cancelled) setLoading(false);
-        }
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }, [])
+      load();
+    }, [load])
   );
 
   const goToCourses = () => navigation.getParent()?.navigate('Courses');
@@ -42,29 +48,53 @@ export default function HomeScreen({ navigation }: any) {
     });
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.center, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
+  if (error && !summary) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.background }}>
+        <ErrorState message={error} onRetry={load} />
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.container}>
+    <ScrollView
+      style={{ backgroundColor: theme.background }}
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            setRefreshing(true);
+            load();
+          }}
+          tintColor={theme.primary}
+        />
+      }
+    >
       <View style={styles.headerRow}>
         <View>
           <Text style={[styles.greeting, { color: theme.textPrimary }]}>Hi, {user?.name?.split(' ')[0]} 👋</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Let's keep your streak alive.</Text>
         </View>
-        {!loading && summary && <StreakBadge streak={summary.currentStreak} />}
+        {summary && <StreakBadge streak={summary.currentStreak} />}
       </View>
 
-      {loading ? (
-        <ActivityIndicator style={{ marginTop: spacing.xl }} color={theme.primary} />
-      ) : !summary || summary.courses.length === 0 ? (
-        <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Ionicons name="rocket-outline" size={32} color={theme.textSecondary} />
-          <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No active courses yet</Text>
-          <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-            Create a course and let AI build your study plan to get started.
-          </Text>
-          <Pressable onPress={goToCourses} style={[styles.ctaButton, { backgroundColor: theme.primary }]}>
-            <Text style={{ color: theme.primaryText, fontWeight: '600' }}>Create a Course</Text>
-          </Pressable>
-        </View>
+      {!summary || summary.courses.length === 0 ? (
+        <EmptyState
+          icon="rocket-outline"
+          title="No active courses yet"
+          subtitle="Create a course and let AI build your study plan to get started."
+          actionLabel="Create a Course"
+          onAction={goToCourses}
+        />
       ) : (
         <>
           {summary.todayTask ? (
@@ -120,14 +150,11 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.lg, paddingTop: spacing.xxl, paddingBottom: spacing.xxl },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  container: { flexGrow: 1, padding: spacing.lg, paddingTop: spacing.xxl, paddingBottom: spacing.xxl },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.lg },
   greeting: { fontSize: 24, fontWeight: '700', marginBottom: 4 },
   subtitle: { fontSize: 14 },
-  emptyCard: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.xl, alignItems: 'center', marginTop: spacing.lg },
-  emptyTitle: { fontSize: 17, fontWeight: '600', marginTop: spacing.md },
-  emptySubtitle: { fontSize: 14, textAlign: 'center', marginTop: 6, marginBottom: spacing.lg },
-  ctaButton: { paddingHorizontal: spacing.lg, paddingVertical: 12, borderRadius: radius.md },
   taskCard: { borderRadius: radius.xl, padding: spacing.lg, marginBottom: spacing.lg },
   taskLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
   taskCourse: { color: '#fff', fontSize: 13, marginBottom: 4, opacity: 0.9 },
