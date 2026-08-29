@@ -8,7 +8,7 @@ const daySchema = new mongoose.Schema(
     subtopics: [String],
     estimatedMinutes: { type: Number, default: 45 },
     status: { type: String, enum: ['pending', 'completed'], default: 'pending' },
-    // Filled in on-demand on Day 6 — null until the user opens this day
+    completedAt: { type: Date, default: null },
     content: { type: String, default: null },
     keyConcepts: [String],
     tips: [String],

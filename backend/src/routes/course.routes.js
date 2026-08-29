@@ -8,6 +8,7 @@ const planCtrl = require('../controllers/studyPlan.controller');
 const flashcardCtrl = require('../controllers/flashcard.controller');
 const quizCtrl = require('../controllers/quiz.controller');
 const noteCtrl = require('../controllers/lectureNote.controller');
+const statsCtrl = require('../controllers/stats.controller');
 
 router.use(requireAuth);
 
@@ -30,6 +31,7 @@ router.delete('/:id', courseCtrl.deleteCourse);
 
 router.post('/:id/generate-plan', planCtrl.generatePlan);
 router.get('/:id/plan', planCtrl.getPlan);
+router.get('/:id/progress', statsCtrl.getCourseProgressStats);
 
 router.get('/:id/days/:dayNumber', planCtrl.getDayContent);
 router.patch('/:id/days/:dayNumber/complete', planCtrl.markDayComplete);

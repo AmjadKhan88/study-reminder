@@ -13,19 +13,14 @@ const userSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, 'Invalid email'],
     },
     password: { type: String, required: true, minlength: 8, select: false },
-    aiProviderPreference: {
-      type: String,
-      enum: ['gemini', 'openai', 'groq'],
-      default: 'gemini',
-    },
-    themePreference: {
-      type: String,
-      enum: ['light', 'dark', 'system'],
-      default: 'system',
-    },
-    reminderTime: { type: String, default: '18:00' }, // "HH:mm", 24-hour, local device time
+    aiProviderPreference: { type: String, enum: ['gemini', 'openai', 'groq'], default: 'gemini' },
+    themePreference: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
+    reminderTime: { type: String, default: '18:00' },
     notificationsEnabled: { type: Boolean, default: true },
-    pushToken: { type: String, default: null }, // Expo push token — groundwork for future server-triggered pushes
+    pushToken: { type: String, default: null },
+    currentStreak: { type: Number, default: 0 },
+    longestStreak: { type: Number, default: 0 },
+    lastActivityDate: { type: String, default: null }, // "YYYY-MM-DD"
     refreshTokenHash: { type: String, select: false },
     isActive: { type: Boolean, default: true },
   },
