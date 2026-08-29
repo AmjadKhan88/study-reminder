@@ -6,6 +6,7 @@ export interface AuthUser {
   email: string;
   reminderTime: string;
   notificationsEnabled: boolean;
+  aiProviderPreference: 'gemini' | 'openai' | 'groq';
 }
 
 export interface AuthResponse {
@@ -24,7 +25,16 @@ export const logoutRequest = (refreshToken: string | null) => api.post('/auth/lo
 
 export const meRequest = () => api.get<{ user: AuthUser }>('/auth/me').then((r) => r.data);
 
-export const updateProfileRequest = (updates: { reminderTime?: string; notificationsEnabled?: boolean }) =>
-  api.patch<{ user: AuthUser }>('/auth/me', updates).then((r) => r.data.user);
+export const updateProfileRequest = (updates: {
+  reminderTime?: string;
+  notificationsEnabled?: boolean;
+  aiProviderPreference?: string;
+}) => api.patch<{ user: AuthUser }>('/auth/me', updates).then((r) => r.data.user);
 
 export const savePushTokenRequest = (pushToken: string) => api.post('/auth/push-token', { pushToken });
+
+export const forgotPasswordRequest = (email: string) =>
+  api.post<{ message: string }>('/auth/forgot-password', { email }).then((r) => r.data);
+
+export const resetPasswordRequest = (email: string, code: string, newPassword: string) =>
+  api.post<{ message: string }>('/auth/reset-password', { email, code, newPassword }).then((r) => r.data);

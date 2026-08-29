@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const User = require('../models/User.model');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/tokens');
+const { sendPasswordResetEmail } = require('../services/email.service');
 
 const cookieOpts = {
   httpOnly: true,
@@ -16,6 +18,7 @@ function toPublicUser(user) {
     email: user.email,
     reminderTime: user.reminderTime,
     notificationsEnabled: user.notificationsEnabled,
+    aiProviderPreference: user.aiProviderPreference,
   };
 }
 
@@ -105,10 +108,11 @@ exports.me = async (req, res, next) => {
 
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { reminderTime, notificationsEnabled } = req.body;
+    const { reminderTime, notificationsEnabled, aiProviderPreference } = req.body;
     const update = {};
     if (reminderTime !== undefined) update.reminderTime = reminderTime;
     if (notificationsEnabled !== undefined) update.notificationsEnabled = notificationsEnabled;
+    if (aiProviderPreference !== undefined) update.aiProviderPreference = aiProviderPreference;
 
     const user = await User.findByIdAndUpdate(req.userId, update, { new: true, runValidators: true });
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -122,9 +126,60 @@ exports.savePushToken = async (req, res, next) => {
   try {
     const { pushToken } = req.body;
     if (!pushToken) return res.status(400).json({ message: 'pushToken is required' });
-
     await User.findByIdAndUpdate(req.userId, { pushToken });
     res.json({ message: 'Push token saved' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Always responds with the same generic message whether or not the email
+// exists — prevents attackers from using this endpoint to discover which
+// emails are registered.
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user) {
+      const code = String(crypto.randomInt(100000, 999999)); // 6-digit code
+      user.resetPasswordCodeHash = await bcrypt.hash(code, 10);
+      user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+      await user.save();
+
+      sendPasswordResetEmail(user.email, user.name, code).catch((err) =>
+        console.error('Failed to send reset email:', err.message)
+      );
+    }
+
+    res.json({ message: 'If that email is registered, a reset code has been sent.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { email, code, newPassword } = req.body;
+
+    const user = await User.findOne({ email }).select('+resetPasswordCodeHash +resetPasswordExpires');
+    if (!user || !user.resetPasswordCodeHash || !user.resetPasswordExpires) {
+      return res.status(400).json({ message: 'Invalid or expired code' });
+    }
+    if (user.resetPasswordExpires < new Date()) {
+      return res.status(400).json({ message: 'This code has expired. Please request a new one.' });
+    }
+
+    const matches = await bcrypt.compare(code, user.resetPasswordCodeHash);
+    if (!matches) return res.status(400).json({ message: 'Invalid or expired code' });
+
+    user.password = newPassword; // pre-save hook hashes this
+    user.resetPasswordCodeHash = null;
+    user.resetPasswordExpires = null;
+    user.refreshTokenHash = null; // invalidate any existing sessions — force re-login everywhere
+    await user.save();
+
+    res.json({ message: 'Password reset successfully. Please log in.' });
   } catch (err) {
     next(err);
   }

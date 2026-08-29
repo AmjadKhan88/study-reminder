@@ -56,6 +56,13 @@ export default function LoginScreen({ navigation }: any) {
 
         <AppButton title="Log In" onPress={handleLogin} loading={submitting} disabled={!email || !password} />
 
+        <Text
+          style={{ color: theme.primary, fontSize: 14, textAlign: 'center', marginTop: spacing.md }}
+          onPress={() => navigation.navigate('ForgotPassword')}
+        >
+          Forgot password?
+        </Text>
+        
         <View style={styles.footerRow}>
           <Text style={{ color: theme.textSecondary }}>Don't have an account? </Text>
           <Text style={{ color: theme.primary, fontWeight: '600' }} onPress={() => navigation.navigate('Register')}>

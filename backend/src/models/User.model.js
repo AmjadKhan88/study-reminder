@@ -20,7 +20,9 @@ const userSchema = new mongoose.Schema(
     pushToken: { type: String, default: null },
     currentStreak: { type: Number, default: 0 },
     longestStreak: { type: Number, default: 0 },
-    lastActivityDate: { type: String, default: null }, // "YYYY-MM-DD"
+    lastActivityDate: { type: String, default: null },
+    resetPasswordCodeHash: { type: String, default: null, select: false },
+    resetPasswordExpires: { type: Date, default: null, select: false },
     refreshTokenHash: { type: String, select: false },
     isActive: { type: Boolean, default: true },
   },
