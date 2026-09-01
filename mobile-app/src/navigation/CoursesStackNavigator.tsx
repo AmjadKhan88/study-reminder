@@ -5,6 +5,7 @@ import CreateCourseScreen from '../screens/CreateCourseScreen';
 import CourseDetailScreen from '../screens/CourseDetailScreen';
 import CourseSettingsScreen from '../screens/CourseSettingsScreen';
 import DayDetailScreen from '../screens/DayDetailScreen';
+import StudySessionScreen from '../screens/StudySessionScreen';
 import FlashcardsScreen from '../screens/FlashcardsScreen';
 import QuizScreen from '../screens/QuizScreen';
 import NotesListScreen from '../screens/NotesListScreen';
@@ -29,6 +30,7 @@ export default function CoursesStackNavigator() {
       <Stack.Screen name="CourseDetail" component={CourseDetailScreen} options={{ title: 'Study Plan' }} />
       <Stack.Screen name="CourseSettings" component={CourseSettingsScreen} options={{ title: 'Course Settings' }} />
       <Stack.Screen name="DayDetail" component={DayDetailScreen} />
+      <Stack.Screen name="StudySession" component={StudySessionScreen} options={{ headerBackTitle: 'Exit' }} />
       <Stack.Screen name="Flashcards" component={FlashcardsScreen} />
       <Stack.Screen name="Quiz" component={QuizScreen} />
       <Stack.Screen name="NotesList" component={NotesListScreen} options={{ title: 'Lecture Notes' }} />

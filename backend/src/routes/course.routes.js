@@ -9,6 +9,7 @@ const flashcardCtrl = require('../controllers/flashcard.controller');
 const quizCtrl = require('../controllers/quiz.controller');
 const noteCtrl = require('../controllers/lectureNote.controller');
 const statsCtrl = require('../controllers/stats.controller');
+const sessionCtrl = require('../controllers/studySession.controller');
 
 router.use(requireAuth);
 
@@ -51,6 +52,9 @@ router.get('/:id/days/:dayNumber/flashcards', flashcardCtrl.getFlashcards);
 
 router.get('/:id/days/:dayNumber/quiz', quizCtrl.getQuiz);
 router.post('/:id/days/:dayNumber/quiz/submit', quizCtrl.submitQuiz);
+
+router.post('/:id/days/:dayNumber/sessions', sessionCtrl.logSession);
+router.get('/:id/days/:dayNumber/sessions', sessionCtrl.getSessionsForDay);
 
 router.post('/:id/notes', upload.single('file'), noteCtrl.uploadNote);
 router.get('/:id/notes', noteCtrl.getNotes);
