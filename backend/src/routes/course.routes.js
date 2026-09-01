@@ -27,6 +27,17 @@ router.post(
 
 router.get('/', courseCtrl.getMyCourses);
 router.get('/:id', courseCtrl.getCourseById);
+router.patch(
+  '/:id',
+  [
+    body('title').optional().trim().isLength({ min: 3 }).withMessage('Title must be at least 3 characters'),
+    body('aiProvider').optional().isIn(['gemini', 'openai', 'groq']),
+  ],
+  validate,
+  courseCtrl.updateCourse
+);
+router.patch('/:id/archive', courseCtrl.setArchived);
+router.patch('/:id/unarchive', courseCtrl.setArchived);
 router.delete('/:id', courseCtrl.deleteCourse);
 
 router.post('/:id/generate-plan', planCtrl.generatePlan);

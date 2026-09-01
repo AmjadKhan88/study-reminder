@@ -14,6 +14,7 @@ export interface Course {
   endDate: string;
   aiProvider: AIProvider;
   status: CourseStatus;
+  archived: boolean;
   createdAt: string;
 }
 
@@ -48,11 +49,20 @@ export interface StudyPlan {
 export const createCourseRequest = (payload: CreateCoursePayload) =>
   api.post<{ course: Course }>('/courses', payload).then((r) => r.data.course);
 
-export const getMyCoursesRequest = () =>
-  api.get<{ courses: Course[] }>('/courses').then((r) => r.data.courses);
+export const getMyCoursesRequest = (archived = false) =>
+  api.get<{ courses: Course[] }>('/courses', { params: { archived } }).then((r) => r.data.courses);
 
 export const getCourseByIdRequest = (id: string) =>
   api.get<{ course: Course }>(`/courses/${id}`).then((r) => r.data.course);
+
+export const updateCourseRequest = (id: string, updates: { title?: string; aiProvider?: AIProvider }) =>
+  api.patch<{ course: Course }>(`/courses/${id}`, updates).then((r) => r.data.course);
+
+export const archiveCourseRequest = (id: string) =>
+  api.patch<{ course: Course }>(`/courses/${id}/archive`).then((r) => r.data.course);
+
+export const unarchiveCourseRequest = (id: string) =>
+  api.patch<{ course: Course }>(`/courses/${id}/unarchive`).then((r) => r.data.course);
 
 export const deleteCourseRequest = (id: string) => api.delete(`/courses/${id}`);
 

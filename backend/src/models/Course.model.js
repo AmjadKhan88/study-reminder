@@ -11,11 +11,11 @@ const courseSchema = new mongoose.Schema(
     endDate: { type: Date },
     aiProvider: { type: String, enum: ['gemini', 'openai', 'groq'], required: true },
     status: { type: String, enum: ['draft', 'generating', 'active', 'completed'], default: 'draft' },
+    archived: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// Auto-compute endDate from startDate + duration whenever those change
 courseSchema.pre('save', function () {
   if (this.isNew || this.isModified('startDate') || this.isModified('durationValue') || this.isModified('durationUnit')) {
     const end = new Date(this.startDate);
@@ -29,5 +29,6 @@ courseSchema.pre('save', function () {
 });
 
 courseSchema.index({ user: 1, createdAt: -1 });
+courseSchema.index({ user: 1, archived: 1 });
 
 module.exports = mongoose.model('Course', courseSchema);

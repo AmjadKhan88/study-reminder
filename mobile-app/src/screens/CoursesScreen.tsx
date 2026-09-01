@@ -5,25 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
 import { getMyCoursesRequest, Course } from '../api/course.api';
 import CourseCard from '../components/CourseCard';
-import AppButton from '../components/AppButton';
-import { spacing, radius } from '../theme/spacing';
 import EmptyState from '../components/EmptyState';
+import { spacing, radius } from '../theme/spacing';
 
 export default function CoursesScreen({ navigation }: any) {
   const { theme } = useAppTheme();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const loadCourses = useCallback(async () => {
     try {
-      const data = await getMyCoursesRequest();
+      const data = await getMyCoursesRequest(showArchived);
       setCourses(data);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [showArchived]);
 
   useFocusEffect(
     useCallback(() => {
@@ -34,25 +34,37 @@ export default function CoursesScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>Your Courses</Text>
-        <Pressable onPress={() => navigation.navigate('CreateCourse')} style={[styles.addButton, { backgroundColor: theme.primary }]}>
-          <Ionicons name="add" size={22} color={theme.primaryText} />
-        </Pressable>
+        <Text style={[styles.title, { color: theme.textPrimary }]}>{showArchived ? 'Archived' : 'Your Courses'}</Text>
+        {!showArchived && (
+          <Pressable onPress={() => navigation.navigate('CreateCourse')} style={[styles.addButton, { backgroundColor: theme.primary }]}>
+            <Ionicons name="add" size={22} color={theme.primaryText} />
+          </Pressable>
+        )}
       </View>
+
+      <Pressable onPress={() => setShowArchived((v) => !v)} style={styles.toggleRow}>
+        <Text style={{ color: theme.primary, fontSize: 13, fontWeight: '600' }}>
+          {showArchived ? '← Back to active courses' : 'View archived courses'}
+        </Text>
+      </Pressable>
 
       {!loading && courses.length === 0 ? (
         <EmptyState
-          icon="book-outline"
-          title="No courses yet"
-          subtitle="Add your first course outline and let AI build your study plan."
-          actionLabel="Create Course"
-          onAction={() => navigation.navigate('CreateCourse')}
+          icon={showArchived ? 'archive-outline' : 'book-outline'}
+          title={showArchived ? 'No archived courses' : 'No courses yet'}
+          subtitle={
+            showArchived
+              ? "Courses you archive will show up here."
+              : 'Add your first course outline and let AI build your study plan.'
+          }
+          actionLabel={showArchived ? undefined : 'Create Course'}
+          onAction={showArchived ? undefined : () => navigation.navigate('CreateCourse')}
         />
       ) : (
         <FlatList
           data={courses}
           keyExtractor={(item) => item._id}
-          contentContainerStyle={{ padding: spacing.lg }}
+          contentContainerStyle={{ padding: spacing.lg, paddingTop: 0 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadCourses(); }} />}
           renderItem={({ item }) => (
             <CourseCard
@@ -68,10 +80,8 @@ export default function CoursesScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.lg, paddingTop: spacing.xxl },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.lg, paddingTop: spacing.xxl, paddingBottom: 0 },
   title: { fontSize: 24, fontWeight: '700' },
   addButton: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
-  emptyTitle: { fontSize: 18, fontWeight: '600', marginTop: spacing.md },
-  emptySubtitle: { fontSize: 14, textAlign: 'center', marginTop: 6 },
+  toggleRow: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
 });

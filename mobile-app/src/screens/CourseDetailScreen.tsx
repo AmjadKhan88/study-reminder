@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, Pressable } from '
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
-import { getPlanRequest, StudyPlan, StudyPlanDay } from '../api/course.api';
+import { getPlanRequest, getCourseByIdRequest, StudyPlan, StudyPlanDay, Course } from '../api/course.api';
 import { getCourseProgressRequest, CourseProgress } from '../api/stats.api';
 import ProgressBar from '../components/ProgressBar';
 import { spacing, radius } from '../theme/spacing';
@@ -12,36 +12,47 @@ export default function CourseDetailScreen({ route, navigation }: any) {
   const { courseId, courseTitle } = route.params;
   const { theme } = useAppTheme();
   const [plan, setPlan] = useState<StudyPlan | null>(null);
+  const [course, setCourse] = useState<Course | null>(null);
   const [progress, setProgress] = useState<CourseProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      navigation.setOptions({
-        title: courseTitle,
-        headerRight: () => (
-          <Ionicons
-            name="document-text-outline"
-            size={22}
-            color={theme.textPrimary}
-            style={{ marginRight: 4 }}
-            onPress={() => navigation.navigate('NotesList', { courseId })}
-          />
-        ),
-      });
       let cancelled = false;
       (async () => {
         setLoading(true);
         setError(null);
         try {
-          const [planData, progressData] = await Promise.all([
+          const [planData, progressData, courseData] = await Promise.all([
             getPlanRequest(courseId),
             getCourseProgressRequest(courseId),
+            getCourseByIdRequest(courseId),
           ]);
           if (!cancelled) {
             setPlan(planData);
             setProgress(progressData);
+            setCourse(courseData);
+
+            navigation.setOptions({
+              title: courseData.title,
+              headerRight: () => (
+                <View style={{ flexDirection: 'row', gap: 16, marginRight: 4 }}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={22}
+                    color={theme.textPrimary}
+                    onPress={() => navigation.navigate('NotesList', { courseId })}
+                  />
+                  <Ionicons
+                    name="settings-outline"
+                    size={22}
+                    color={theme.textPrimary}
+                    onPress={() => navigation.navigate('CourseSettings', { course: courseData })}
+                  />
+                </View>
+              ),
+            });
           }
         } catch (err: any) {
           if (!cancelled) setError(err.response?.data?.message || 'Could not load study plan');

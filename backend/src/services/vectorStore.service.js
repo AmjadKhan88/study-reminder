@@ -52,8 +52,6 @@ async function deleteByNote(noteId) {
   );
 }
 
-// Wipes every vector belonging to a user across all their courses/notes —
-// used when an account is deleted, so no orphaned data survives in Qdrant.
 async function deleteByUser(userId) {
   await withTimeout(
     client.delete(COLLECTION_NAME, { filter: { must: [{ key: 'userId', match: { value: String(userId) } }] } }),
@@ -62,4 +60,13 @@ async function deleteByUser(userId) {
   );
 }
 
-module.exports = { upsertChunks, searchSimilar, deleteByNote, deleteByUser };
+// Wipes every vector tied to one course — used by cascade course deletion.
+async function deleteByCourse(courseId) {
+  await withTimeout(
+    client.delete(COLLECTION_NAME, { filter: { must: [{ key: 'courseId', match: { value: String(courseId) } }] } }),
+    QDRANT_TIMEOUT_MS,
+    'Qdrant delete by course'
+  );
+}
+
+module.exports = { upsertChunks, searchSimilar, deleteByNote, deleteByUser, deleteByCourse };

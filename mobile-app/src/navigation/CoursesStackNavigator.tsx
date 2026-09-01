@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CoursesScreen from '../screens/CoursesScreen';
 import CreateCourseScreen from '../screens/CreateCourseScreen';
 import CourseDetailScreen from '../screens/CourseDetailScreen';
+import CourseSettingsScreen from '../screens/CourseSettingsScreen';
 import DayDetailScreen from '../screens/DayDetailScreen';
 import FlashcardsScreen from '../screens/FlashcardsScreen';
 import QuizScreen from '../screens/QuizScreen';
@@ -26,6 +27,7 @@ export default function CoursesStackNavigator() {
       <Stack.Screen name="CoursesList" component={CoursesScreen} options={{ headerShown: false }} />
       <Stack.Screen name="CreateCourse" component={CreateCourseScreen} options={{ title: 'New Course' }} />
       <Stack.Screen name="CourseDetail" component={CourseDetailScreen} options={{ title: 'Study Plan' }} />
+      <Stack.Screen name="CourseSettings" component={CourseSettingsScreen} options={{ title: 'Course Settings' }} />
       <Stack.Screen name="DayDetail" component={DayDetailScreen} />
       <Stack.Screen name="Flashcards" component={FlashcardsScreen} />
       <Stack.Screen name="Quiz" component={QuizScreen} />
