@@ -7,6 +7,8 @@ export interface AuthUser {
   reminderTime: string;
   notificationsEnabled: boolean;
   aiProviderPreference: 'gemini' | 'openai' | 'groq';
+  weeklyGoalDays: number;
+  weeklyGoalMinutes: number;
 }
 
 export interface AuthResponse {
@@ -25,12 +27,8 @@ export const logoutRequest = (refreshToken: string | null) => api.post('/auth/lo
 
 export const meRequest = () => api.get<{ user: AuthUser }>('/auth/me').then((r) => r.data);
 
-export const updateProfileRequest = (updates: {
-  reminderTime?: string;
-  notificationsEnabled?: boolean;
-  aiProviderPreference?: string;
-}) => api.patch<{ user: AuthUser }>('/auth/me', updates).then((r) => r.data.user);
-
+export const updateProfileRequest = (updates: Partial<Pick<AuthUser, 'reminderTime' | 'notificationsEnabled' | 'aiProviderPreference' | 'weeklyGoalDays' | 'weeklyGoalMinutes'>>) =>
+  api.patch<{ user: AuthUser }>('/auth/me', updates).then((r) => r.data.user);
 export const savePushTokenRequest = (pushToken: string) => api.post('/auth/push-token', { pushToken });
 
 export const forgotPasswordRequest = (email: string) =>

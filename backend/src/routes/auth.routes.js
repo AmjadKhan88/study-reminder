@@ -34,6 +34,8 @@ router.patch(
       .withMessage('reminderTime must be in HH:mm format'),
     body('notificationsEnabled').optional().isBoolean(),
     body('aiProviderPreference').optional().isIn(['gemini', 'openai', 'groq']),
+    body('weeklyGoalDays').optional().isInt({ min: 1, max: 7 }).withMessage('weeklyGoalDays must be 1-7'),
+    body('weeklyGoalMinutes').optional().isInt({ min: 0, max: 10080 }).withMessage('weeklyGoalMinutes must be a valid number of minutes'),
   ],
   validate,
   ctrl.updateProfile

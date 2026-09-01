@@ -28,7 +28,7 @@ interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
-  updateNotificationSettings: (updates: { reminderTime?: string; notificationsEnabled?: boolean }) => Promise<void>;
+  updateNotificationSettings: (updates: Partial<Pick<AuthUser, 'reminderTime' | 'notificationsEnabled' | 'aiProviderPreference' | 'weeklyGoalDays' | 'weeklyGoalMinutes'>>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   };
 
-  const updateNotificationSettings = async (updates: { reminderTime?: string; notificationsEnabled?: boolean }) => {
+  const updateNotificationSettings = async (updates: Partial<Pick<AuthUser, 'reminderTime' | 'notificationsEnabled' | 'aiProviderPreference' | 'weeklyGoalDays' | 'weeklyGoalMinutes'>>) => {
     const updated = await updateProfileRequest(updates);
     setUser(updated);
     await syncNotificationsForUser(updated);

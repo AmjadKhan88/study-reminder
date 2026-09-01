@@ -36,7 +36,20 @@ export interface CourseProgress {
   onTrack: boolean;
 }
 
+export interface WeeklyGoalProgress {
+  weekStart: string;
+  weekEnd: string;
+  targetDays: number;
+  completedDays: number;
+  daysPercentage: number;
+  targetMinutes: number;
+  completedMinutes: number;
+  minutesPercentage: number;
+}
+
 export const getProgressSummaryRequest = () => api.get<ProgressSummary>('/stats/summary').then((r) => r.data);
 
 export const getCourseProgressRequest = (courseId: string) =>
   api.get<CourseProgress>(`/courses/${courseId}/progress`).then((r) => r.data);
+
+export const getWeeklyGoalRequest = () => api.get<WeeklyGoalProgress>('/stats/weekly-goal').then((r) => r.data);

@@ -20,6 +20,8 @@ function toPublicUser(user) {
     reminderTime: user.reminderTime,
     notificationsEnabled: user.notificationsEnabled,
     aiProviderPreference: user.aiProviderPreference,
+    weeklyGoalDays: user.weeklyGoalDays,
+    weeklyGoalMinutes: user.weeklyGoalMinutes,
   };
 }
 
@@ -105,11 +107,13 @@ exports.me = async (req, res, next) => {
 
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { reminderTime, notificationsEnabled, aiProviderPreference } = req.body;
+    const { reminderTime, notificationsEnabled, aiProviderPreference, weeklyGoalDays, weeklyGoalMinutes } = req.body;
     const update = {};
     if (reminderTime !== undefined) update.reminderTime = reminderTime;
     if (notificationsEnabled !== undefined) update.notificationsEnabled = notificationsEnabled;
     if (aiProviderPreference !== undefined) update.aiProviderPreference = aiProviderPreference;
+    if (weeklyGoalDays !== undefined) update.weeklyGoalDays = weeklyGoalDays;
+    if (weeklyGoalMinutes !== undefined) update.weeklyGoalMinutes = weeklyGoalMinutes;
 
     const user = await User.findByIdAndUpdate(req.userId, update, { new: true, runValidators: true });
     if (!user) return res.status(404).json({ message: 'User not found' });

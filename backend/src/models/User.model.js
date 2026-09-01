@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema(
     currentStreak: { type: Number, default: 0 },
     longestStreak: { type: Number, default: 0 },
     lastActivityDate: { type: String, default: null },
+    weeklyGoalDays: { type: Number, default: 5, min: 1, max: 7 },
+    weeklyGoalMinutes: { type: Number, default: 300, min: 0 },
     resetPasswordCodeHash: { type: String, default: null, select: false },
     resetPasswordExpires: { type: Date, default: null, select: false },
     refreshTokenHash: { type: String, select: false },

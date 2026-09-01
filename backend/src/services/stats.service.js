@@ -7,8 +7,6 @@ function computeCourseProgress(plan) {
   const completedDays = plan.days.filter((d) => d.status === 'completed').length;
   const percentage = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
 
-  // "On track" = have they completed at least as many days as have already
-  // passed on the calendar since the course started.
   const today = new Date();
   const expectedCompleted = plan.days.filter((d) => new Date(d.date) <= today).length;
   const onTrack = completedDays >= expectedCompleted;
@@ -28,7 +26,9 @@ async function getCourseProgress(courseId, userId) {
 
 async function getUserProgressSummary(userId) {
   const user = await User.findById(userId);
-  const courses = await Course.find({ user: userId, status: { $in: ['active', 'completed'] } }).sort('-createdAt');
+  const courses = await Course.find({ user: userId, status: { $in: ['active', 'completed'] }, archived: { $ne: true } }).sort(
+    '-createdAt'
+  );
 
   let todayTask = null;
   let overallCompleted = 0;
@@ -68,4 +68,55 @@ async function getUserProgressSummary(userId) {
   };
 }
 
-module.exports = { getUserProgressSummary, getCourseProgress };
+// Monday 00:00:00 through the following Monday 00:00:00 (exclusive), so a
+// full calendar week regardless of what day "today" falls on.
+function getCurrentWeekRange(now = new Date()) {
+  const day = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+  const diffToMonday = day === 0 ? 6 : day - 1;
+
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - diffToMonday);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+
+  return { start, end };
+}
+
+async function getWeeklyGoalProgress(userId) {
+  const user = await User.findById(userId);
+  const { start, end } = getCurrentWeekRange();
+
+  const plans = await StudyPlan.find({ user: userId });
+
+  let completedDaysThisWeek = 0;
+  let completedMinutesThisWeek = 0;
+  const distinctDatesCompleted = new Set(); // a "day" toward the goal = one calendar date with >=1 completion
+
+  for (const plan of plans) {
+    for (const day of plan.days) {
+      if (day.status !== 'completed' || !day.completedAt) continue;
+      const completedAt = new Date(day.completedAt);
+      if (completedAt >= start && completedAt < end) {
+        completedMinutesThisWeek += day.estimatedMinutes || 0;
+        distinctDatesCompleted.add(completedAt.toISOString().slice(0, 10));
+      }
+    }
+  }
+  completedDaysThisWeek = distinctDatesCompleted.size;
+
+  return {
+    weekStart: start,
+    weekEnd: end,
+    targetDays: user.weeklyGoalDays,
+    completedDays: completedDaysThisWeek,
+    daysPercentage: Math.min(100, Math.round((completedDaysThisWeek / user.weeklyGoalDays) * 100)),
+    targetMinutes: user.weeklyGoalMinutes,
+    completedMinutes: completedMinutesThisWeek,
+    minutesPercentage:
+      user.weeklyGoalMinutes > 0 ? Math.min(100, Math.round((completedMinutesThisWeek / user.weeklyGoalMinutes) * 100)) : 0,
+  };
+}
+
+module.exports = { getUserProgressSummary, getCourseProgress, getWeeklyGoalProgress };

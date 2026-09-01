@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ProfileScreen from '../screens/ProfileScreen';
 import AccountSettingsScreen from '../screens/AccountSettingsScreen';
+import GoalSettingsScreen from '../screens/GoalSettingsScreen';
 import { useAppTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -18,6 +19,7 @@ export default function ProfileStackNavigator() {
     >
       <Stack.Screen name="ProfileMain" component={ProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} options={{ title: 'Account Settings' }} />
+      <Stack.Screen name="GoalSettings" component={GoalSettingsScreen} options={{ title: 'Weekly Goal' }} />
     </Stack.Navigator>
   );
 }

@@ -4,9 +4,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { getProgressSummaryRequest, ProgressSummary } from '../api/stats.api';
+import { getProgressSummaryRequest, getWeeklyGoalRequest, ProgressSummary, WeeklyGoalProgress } from '../api/stats.api';
 import StreakBadge from '../components/StreakBadge';
 import ProgressBar from '../components/ProgressBar';
+import WeeklyGoalCard from '../components/WeeklyGoalCard';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import { spacing, radius } from '../theme/spacing';
@@ -15,6 +16,7 @@ export default function HomeScreen({ navigation }: any) {
   const { theme } = useAppTheme();
   const { user } = useAuth();
   const [summary, setSummary] = useState<ProgressSummary | null>(null);
+  const [goal, setGoal] = useState<WeeklyGoalProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,8 +24,9 @@ export default function HomeScreen({ navigation }: any) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const data = await getProgressSummaryRequest();
-      setSummary(data);
+      const [summaryData, goalData] = await Promise.all([getProgressSummaryRequest(), getWeeklyGoalRequest()]);
+      setSummary(summaryData);
+      setGoal(goalData);
     } catch {
       setError("Couldn't load your progress right now.");
     } finally {
@@ -39,6 +42,7 @@ export default function HomeScreen({ navigation }: any) {
   );
 
   const goToCourses = () => navigation.getParent()?.navigate('Courses');
+  const goToGoalSettings = () => navigation.getParent()?.navigate('Profile', { screen: 'GoalSettings' });
 
   const goToTodayTask = () => {
     if (!summary?.todayTask) return;
@@ -69,14 +73,7 @@ export default function HomeScreen({ navigation }: any) {
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={styles.container}
       refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={() => {
-            setRefreshing(true);
-            load();
-          }}
-          tintColor={theme.primary}
-        />
+        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={theme.primary} />
       }
     >
       <View style={styles.headerRow}>
@@ -86,6 +83,8 @@ export default function HomeScreen({ navigation }: any) {
         </View>
         {summary && <StreakBadge streak={summary.currentStreak} />}
       </View>
+
+      {goal && <WeeklyGoalCard goal={goal} onPress={goToGoalSettings} />}
 
       {!summary || summary.courses.length === 0 ? (
         <EmptyState

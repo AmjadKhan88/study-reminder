@@ -1,4 +1,4 @@
-const { getUserProgressSummary, getCourseProgress } = require('../services/stats.service');
+const { getUserProgressSummary, getCourseProgress, getWeeklyGoalProgress } = require('../services/stats.service');
 
 exports.getSummary = async (req, res, next) => {
   try {
@@ -15,6 +15,15 @@ exports.getCourseProgressStats = async (req, res, next) => {
     res.json(progress);
   } catch (err) {
     if (err.message.includes('not found')) return res.status(404).json({ message: err.message });
+    next(err);
+  }
+};
+
+exports.getWeeklyGoal = async (req, res, next) => {
+  try {
+    const progress = await getWeeklyGoalProgress(req.userId);
+    res.json(progress);
+  } catch (err) {
     next(err);
   }
 };
