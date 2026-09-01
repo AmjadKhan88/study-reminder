@@ -18,7 +18,14 @@ exports.createCourse = async (req, res, next) => {
 exports.getMyCourses = async (req, res, next) => {
   try {
     const showArchived = req.query.archived === 'true';
-    const courses = await Course.find({ user: req.userId, archived: showArchived }).sort('-createdAt');
+    // $ne: true matches both `archived: false` AND documents with no archived
+    // field at all (courses created before this field existed) — a plain
+    // `{ archived: false }` query would silently exclude those.
+    const filter = showArchived
+      ? { user: req.userId, archived: true }
+      : { user: req.userId, archived: { $ne: true } };
+
+    const courses = await Course.find(filter).sort('-createdAt');
     res.json({ courses });
   } catch (err) {
     next(err);
