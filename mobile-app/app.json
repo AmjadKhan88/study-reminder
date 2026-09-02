@@ -37,7 +37,8 @@
           "icon": "./assets/icon.png",
           "color": "#4A47A3"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "extra": {
       "eas": {

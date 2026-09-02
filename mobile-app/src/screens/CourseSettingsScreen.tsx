@@ -14,6 +14,7 @@ import {
   generatePlanRequest,
 } from '../api/course.api';
 import { spacing, radius } from '../theme/spacing';
+import { exportStudyPlanPdf } from '../utils/pdfExport';
 
 const AI_PROVIDER_OPTIONS = [
   { label: 'Gemini', value: 'gemini' },
@@ -32,6 +33,19 @@ export default function CourseSettingsScreen({ route, navigation }: any) {
   const [archiving, setArchiving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = async () => {
+    setExporting(true);
+    try {
+      await exportStudyPlanPdf(course._id);
+    } catch {
+      Alert.alert('Export failed', 'Could not generate the PDF. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleSaveTitle = async () => {
     if (title.trim().length < 3 || title.trim() === course.title) return;
@@ -123,6 +137,14 @@ export default function CourseSettingsScreen({ route, navigation }: any) {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Export</Text>
+        <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+          Download or share your study plan as a PDF.
+        </Text>
+        <AppButton title="Export Study Plan as PDF" variant="secondary" onPress={handleExportPdf} loading={exporting} />
+
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
         <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Course Title</Text>
         <AppTextInput label="Title" value={title} onChangeText={setTitle} placeholder="Course title" />
         <AppButton
