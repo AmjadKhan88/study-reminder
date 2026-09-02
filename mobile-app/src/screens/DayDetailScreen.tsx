@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Markdown from 'react-native-markdown-display';
-import { useFocusEffect } from '@react-navigation/native';
+import AIContentRenderer from '../components/AIContentRenderer'; import { useFocusEffect } from '@react-navigation/native';
 import { useAppTheme } from '../context/ThemeContext';
 import { getDayContentRequest, markDayCompleteRequest, StudyPlanDay } from '../api/course.api';
 import { getSessionsForDayRequest, StudySession } from '../api/session.api';
@@ -121,7 +120,10 @@ export default function DayDetailScreen({ route, navigation }: any) {
         <Text style={styles.timerCtaText}>Start Study Session ({day.estimatedMinutes} min)</Text>
       </Pressable>
 
-      <Markdown style={buildMarkdownStyles(theme)}>{day.content || ''}</Markdown>
+      <AIContentRenderer
+        content={day.content || ''}
+        theme={theme}
+      />
 
       {!!day.keyConcepts?.length && (
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
