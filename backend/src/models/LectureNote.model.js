@@ -21,5 +21,6 @@ const lectureNoteSchema = new mongoose.Schema(
 );
 
 lectureNoteSchema.index({ user: 1, course: 1, createdAt: -1 });
+lectureNoteSchema.index({ title: 'text', summary: 'text' });
 
 module.exports = mongoose.model('LectureNote', lectureNoteSchema);

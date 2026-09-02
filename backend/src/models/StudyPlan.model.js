@@ -29,4 +29,6 @@ const studyPlanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+studyPlanSchema.index({ 'days.topic': 'text', 'days.subtopics': 'text' });
+
 module.exports = mongoose.model('StudyPlan', studyPlanSchema);

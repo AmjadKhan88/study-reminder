@@ -11,6 +11,7 @@ import QuizScreen from '../screens/QuizScreen';
 import NotesListScreen from '../screens/NotesListScreen';
 import NoteDetailScreen from '../screens/NoteDetailScreen';
 import AskNotesScreen from '../screens/AskNotesScreen';
+import SearchScreen from '../screens/SearchScreen';
 import { useAppTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -36,6 +37,7 @@ export default function CoursesStackNavigator() {
       <Stack.Screen name="NotesList" component={NotesListScreen} options={{ title: 'Lecture Notes' }} />
       <Stack.Screen name="NoteDetail" component={NoteDetailScreen} />
       <Stack.Screen name="AskNotes" component={AskNotesScreen} options={{ title: 'Ask AI' }} />
+      <Stack.Screen name="Search" component={SearchScreen} options={{ title: 'Search' }} />
     </Stack.Navigator>
   );
 }

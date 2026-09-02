@@ -35,11 +35,16 @@ export default function CoursesScreen({ navigation }: any) {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.textPrimary }]}>{showArchived ? 'Archived' : 'Your Courses'}</Text>
-        {!showArchived && (
-          <Pressable onPress={() => navigation.navigate('CreateCourse')} style={[styles.addButton, { backgroundColor: theme.primary }]}>
-            <Ionicons name="add" size={22} color={theme.primaryText} />
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <Pressable onPress={() => navigation.navigate('Search')} style={[styles.iconButton, { backgroundColor: theme.surfaceAlt }]}>
+            <Ionicons name="search" size={20} color={theme.textPrimary} />
           </Pressable>
-        )}
+          {!showArchived && (
+            <Pressable onPress={() => navigation.navigate('CreateCourse')} style={[styles.addButton, { backgroundColor: theme.primary }]}>
+              <Ionicons name="add" size={22} color={theme.primaryText} />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <Pressable onPress={() => setShowArchived((v) => !v)} style={styles.toggleRow}>
@@ -84,4 +89,5 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '700' },
   addButton: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   toggleRow: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  iconButton: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
 });

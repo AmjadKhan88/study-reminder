@@ -30,5 +30,6 @@ courseSchema.pre('save', function () {
 
 courseSchema.index({ user: 1, createdAt: -1 });
 courseSchema.index({ user: 1, archived: 1 });
+courseSchema.index({ title: 'text', outline: 'text' });
 
 module.exports = mongoose.model('Course', courseSchema);
