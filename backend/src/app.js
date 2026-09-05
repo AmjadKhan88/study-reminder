@@ -7,16 +7,20 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-app.set('etag', false); // disable automatic ETag/304 caching — our data changes too often (polling, live status) to benefit from it, and it was causing stale responses on mobile
+app.set('etag', false);
+app.set('trust proxy', 1); // Render sits behind a proxy — needed for correct req.ip / rate limiting
 
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*', credentials: true }));
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN || '*',
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// Belt-and-suspenders: explicitly tell every client (including Android's
-// OkHttp, which caches more aggressively than you'd expect) never to cache.
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store');
   next();
