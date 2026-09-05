@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Linking } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -133,6 +134,21 @@ export default function AccountSettingsScreen({ navigation }: any) {
             </>
           )}
         </View>
+
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Legal</Text>
+        <AppButton
+          title="Privacy Policy"
+          variant="secondary"
+          onPress={() => Linking.openURL('https://studypilot-api-7ka1.onrender.com/privacy.html')}
+          style={{ marginBottom: spacing.sm }}
+        />
+        <AppButton
+          title="Terms of Service"
+          variant="secondary"
+          onPress={() => Linking.openURL('https://studypilot-api-7ka1.onrender.com/terms.html')}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

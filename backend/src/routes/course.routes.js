@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const requireAuth = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { aiGenerationLimiter, uploadLimiter, askLimiter } = require('../middleware/aiRateLimit');
 const courseCtrl = require('../controllers/course.controller');
 const planCtrl = require('../controllers/studyPlan.controller');
 const flashcardCtrl = require('../controllers/flashcard.controller');
@@ -41,25 +42,25 @@ router.patch('/:id/archive', courseCtrl.setArchived);
 router.patch('/:id/unarchive', courseCtrl.setArchived);
 router.delete('/:id', courseCtrl.deleteCourse);
 
-router.post('/:id/generate-plan', planCtrl.generatePlan);
+router.post('/:id/generate-plan', aiGenerationLimiter, planCtrl.generatePlan);
 router.get('/:id/plan', planCtrl.getPlan);
 router.get('/:id/progress', statsCtrl.getCourseProgressStats);
 
-router.get('/:id/days/:dayNumber', planCtrl.getDayContent);
+router.get('/:id/days/:dayNumber', aiGenerationLimiter, planCtrl.getDayContent);
 router.patch('/:id/days/:dayNumber/complete', planCtrl.markDayComplete);
 
-router.get('/:id/days/:dayNumber/flashcards', flashcardCtrl.getFlashcards);
+router.get('/:id/days/:dayNumber/flashcards', aiGenerationLimiter, flashcardCtrl.getFlashcards);
 
-router.get('/:id/days/:dayNumber/quiz', quizCtrl.getQuiz);
+router.get('/:id/days/:dayNumber/quiz', aiGenerationLimiter, quizCtrl.getQuiz);
 router.post('/:id/days/:dayNumber/quiz/submit', quizCtrl.submitQuiz);
 
 router.post('/:id/days/:dayNumber/sessions', sessionCtrl.logSession);
 router.get('/:id/days/:dayNumber/sessions', sessionCtrl.getSessionsForDay);
 
-router.post('/:id/notes', upload.single('file'), noteCtrl.uploadNote);
+router.post('/:id/notes', uploadLimiter, upload.single('file'), noteCtrl.uploadNote);
 router.get('/:id/notes', noteCtrl.getNotes);
 router.get('/:id/notes/:noteId', noteCtrl.getNoteById);
 router.delete('/:id/notes/:noteId', noteCtrl.deleteNote);
-router.post('/:id/notes/ask', noteCtrl.askQuestion);
+router.post('/:id/notes/ask', askLimiter, noteCtrl.askQuestion);
 
 module.exports = router;
