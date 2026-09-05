@@ -102,6 +102,7 @@ export default function ProfileScreen({ navigation }: any) {
           variant="secondary"
           onPress={() => setMode(mode === 'dark' ? 'light' : mode === 'light' ? 'system' : 'dark')}
         />
+        <AppButton title="About & Support" variant="secondary" onPress={() => navigation.navigate('About')} />
         <AppButton title="Log Out" variant="secondary" onPress={logout} />
       </View>
     </View>
