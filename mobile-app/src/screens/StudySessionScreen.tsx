@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Vibration } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Vibration, AppState } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '../context/ThemeContext';
 import { logSessionRequest } from '../api/session.api';
@@ -18,48 +18,80 @@ export default function StudySessionScreen({ route, navigation }: any) {
   const { theme } = useAppTheme();
 
   const [targetMinutes] = useState<number>(estimatedMinutes || 25);
-  const [secondsLeft, setSecondsLeft] = useState(targetMinutes * 60);
+  const targetSeconds = targetMinutes * 60;
+
+  const [secondsLeft, setSecondsLeft] = useState(targetSeconds);
   const [state, setState] = useState<TimerState>('idle');
   const [saving, setSaving] = useState(false);
+
   const startedAtRef = useRef<Date | null>(null);
+  const endAtRef = useRef<number | null>(null); // epoch ms when timer should hit zero — only set while running
+  const remainingSecRef = useRef<number>(targetSeconds); // authoritative remaining time whenever not running
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     navigation.setOptions({ title: `Focus: ${topic}` });
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const tick = () => {
-    setSecondsLeft((prev) => {
-      if (prev <= 1) {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        setState('finished');
-        Vibration.vibrate([0, 300, 150, 300]);
-        return 0;
-      }
-      return prev - 1;
-    });
+  const clearTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
   };
+
+  // Recomputes remaining time from real elapsed wall-clock time rather than
+  // counting ticks — this is what makes the timer immune to drift/freezing
+  // when the screen locks, the app backgrounds, or the JS thread stalls.
+  const recompute = () => {
+    if (endAtRef.current == null) return;
+    const remaining = Math.max(0, Math.ceil((endAtRef.current - Date.now()) / 1000));
+    remainingSecRef.current = remaining;
+    setSecondsLeft(remaining);
+    if (remaining <= 0) {
+      clearTimer();
+      endAtRef.current = null;
+      setState('finished');
+      Vibration.vibrate([0, 300, 150, 300]);
+    }
+  };
+
+  // Force an immediate resync the moment the app returns to the foreground,
+  // instead of waiting up to 1s for the next interval tick.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active' && state === 'running') recompute();
+    });
+    return () => sub.remove();
+  }, [state]);
+
+  useEffect(() => {
+    return () => clearTimer();
+  }, []);
 
   const handleStart = () => {
     if (state === 'idle') startedAtRef.current = new Date();
+    endAtRef.current = Date.now() + remainingSecRef.current * 1000;
     setState('running');
-    intervalRef.current = setInterval(tick, 1000);
+    clearTimer();
+    intervalRef.current = setInterval(recompute, 1000);
   };
 
   const handlePause = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    clearTimer();
+    if (endAtRef.current != null) {
+      remainingSecRef.current = Math.max(0, Math.ceil((endAtRef.current - Date.now()) / 1000));
+      setSecondsLeft(remainingSecRef.current);
+    }
+    endAtRef.current = null;
     setState('paused');
   };
 
   const handleReset = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setSecondsLeft(targetMinutes * 60);
+    clearTimer();
+    endAtRef.current = null;
+    remainingSecRef.current = targetSeconds;
+    setSecondsLeft(targetSeconds);
     setState('idle');
     startedAtRef.current = null;
   };
@@ -70,7 +102,7 @@ export default function StudySessionScreen({ route, navigation }: any) {
       return;
     }
     setSaving(true);
-    const elapsedSeconds = targetMinutes * 60 - secondsLeft;
+    const elapsedSeconds = targetSeconds - remainingSecRef.current;
     const actualMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
 
     try {
@@ -88,11 +120,15 @@ export default function StudySessionScreen({ route, navigation }: any) {
   };
 
   const handleStopEarly = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    clearTimer();
+    if (endAtRef.current != null) {
+      remainingSecRef.current = Math.max(0, Math.ceil((endAtRef.current - Date.now()) / 1000));
+    }
+    endAtRef.current = null;
     saveSession(false);
   };
 
-  const progress = 1 - secondsLeft / (targetMinutes * 60);
+  const progress = 1 - secondsLeft / targetSeconds;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>

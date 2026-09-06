@@ -42,15 +42,28 @@ export default function HomeScreen({ navigation }: any) {
   );
 
   const goToCourses = () => navigation.getParent()?.navigate('Courses');
-  const goToGoalSettings = () => navigation.getParent()?.navigate('Profile', { screen: 'GoalSettings' });
+  // const goToGoalSettings = () => navigation.getParent()?.navigate('Profile', { screen: 'GoalSettings' });
 
-  const goToTodayTask = () => {
-    if (!summary?.todayTask) return;
-    navigation.getParent()?.navigate('Courses', {
-      screen: 'DayDetail',
-      params: { courseId: summary.todayTask.courseId, dayNumber: summary.todayTask.dayNumber },
-    });
-  };
+  // const goToTodayTask = () => {
+  //   if (!summary?.todayTask) return;
+  //   navigation.getParent()?.navigate('Courses', {
+  //     screen: 'DayDetail',
+  //     params: { courseId: summary.todayTask.courseId, dayNumber: summary.todayTask.dayNumber },
+  //   });
+  // };
+
+  const goToGoalSettings = () =>
+  navigation.getParent()?.navigate('Profile', { screen: 'GoalSettings', initial: false });
+
+const goToTodayTask = () => {
+  console.log('goToTodayTask fired', summary?.todayTask);
+  if (!summary?.todayTask) return;
+  navigation.getParent()?.navigate('Courses', {
+    screen: 'DayDetail',
+    params: { courseId: summary.todayTask.courseId, dayNumber: summary.todayTask.dayNumber },
+    initial: false,
+  });
+};
 
   if (loading) {
     return (
