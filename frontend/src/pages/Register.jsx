@@ -34,7 +34,7 @@ export default function Register() {
         <input
           name="name"
           placeholder="Full name"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border rounded-lg border-gray-300 outline-none hover:border-indigo-600 px-3 py-2"
           value={form.name}
           onChange={handleChange}
           required
@@ -43,7 +43,7 @@ export default function Register() {
           name="email"
           type="email"
           placeholder="Email"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border rounded-lg border-gray-300 outline-none hover:border-indigo-600 px-3 py-2"
           value={form.email}
           onChange={handleChange}
           required
@@ -52,7 +52,7 @@ export default function Register() {
           name="password"
           type="password"
           placeholder="Password (min 8 chars)"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border rounded-lg border-gray-300 outline-none hover:border-indigo-600 px-3 py-2"
           value={form.password}
           onChange={handleChange}
           minLength={8}

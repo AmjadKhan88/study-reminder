@@ -32,7 +32,7 @@ export default function Login() {
         <input
           type="email"
           placeholder="Email"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border rounded-lg border-gray-300 outline-none hover:border-indigo-600 px-3 py-2"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
@@ -40,7 +40,7 @@ export default function Login() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border rounded-lg border-gray-300 outline-none hover:border-indigo-600 px-3 py-2"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
