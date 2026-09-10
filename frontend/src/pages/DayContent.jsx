@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { getDayContent, markDayComplete } from '../api/plan.api';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
+import AIContentRenderer from '../components/AIContentRenderer';
 
 export default function DayContent() {
   const { id, dayNumber } = useParams();
@@ -43,25 +44,25 @@ export default function DayContent() {
     }
   };
 
-const handleLogSession = async () => {
-  setLogging(true);
-  try {
-    const now = new Date();
-    const startedAt = new Date(now.getTime() - sessionMinutes * 60000);
-    await api.post(`/courses/${id}/days/${dayNumber}/sessions`, {
-      targetMinutes: sessionMinutes,
-      actualMinutes: sessionMinutes,
-      completedFully: true,
-      startedAt: startedAt.toISOString(),
-      endedAt: now.toISOString(),
-    });
-    toast.success('Study session logged');
-  } catch {
-    toast.error('Failed to log session');
-  } finally {
-    setLogging(false);
-  }
-};
+  const handleLogSession = async () => {
+    setLogging(true);
+    try {
+      const now = new Date();
+      const startedAt = new Date(now.getTime() - sessionMinutes * 60000);
+      await api.post(`/courses/${id}/days/${dayNumber}/sessions`, {
+        targetMinutes: sessionMinutes,
+        actualMinutes: sessionMinutes,
+        completedFully: true,
+        startedAt: startedAt.toISOString(),
+        endedAt: now.toISOString(),
+      });
+      toast.success('Study session logged');
+    } catch {
+      toast.error('Failed to log session');
+    } finally {
+      setLogging(false);
+    }
+  };
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
   if (!day) return <div className="p-8 text-center">Day not found</div>;
@@ -84,9 +85,8 @@ const handleLogSession = async () => {
             )}
           </div>
           <span
-            className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-              day.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-            }`}
+            className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${day.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+              }`}
           >
             {day.status}
           </span>
@@ -109,7 +109,7 @@ const handleLogSession = async () => {
 
         <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
           {day.content ? (
-            <div className="prose prose-sm max-w-none whitespace-pre-wrap">{day.content}</div>
+            <AIContentRenderer content={day.content} className="prose prose-sm max-w-none" />
           ) : (
             <p className="text-gray-400 text-sm">No content generated yet.</p>
           )}
