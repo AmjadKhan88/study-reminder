@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ArrowLeft, FileText, Check, Clock, Lock, RotateCcw } from 'lucide-react';
 import { getCourseById } from '../api/courses.api';
 import { getPlan, generatePlan, getCourseProgress } from '../api/plan.api';
 import Navbar from '../components/Navbar';
@@ -24,20 +25,17 @@ export default function CourseDetail() {
         const progressRes = await getCourseProgress(id);
         setProgress(progressRes.data);
       } catch {
-        // progress may not be ready yet, non-fatal
+        // not ready yet
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to load course');
     } finally {
       setLoading(false);
     }
   }, [id]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  // Poll every 4s while plan is still generating
   useEffect(() => {
     if (plan?.generationStatus !== 'pending') return;
     const interval = setInterval(loadData, 4000);
@@ -57,93 +55,99 @@ export default function CourseDetail() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (!course) return <div className="p-8 text-center">Course not found</div>;
+  if (loading) {
+    return (
+      <div className="sp-page-bg flex items-center justify-center">
+        <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
+      </div>
+    );
+  }
+  if (!course) {
+    return (
+      <div className="sp-page-bg flex items-center justify-center">
+        <p style={{ color: 'var(--text-muted)' }}>Course not found</p>
+      </div>
+    );
+  }
+
+  const progressPct = progress
+    ? ((progress.completedDays ?? 0) / (progress.totalDays ?? (plan?.totalDays || 1))) * 100
+    : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="sp-page-bg">
       <Navbar />
-      <div className="max-w-3xl mx-auto p-6">
-        <button onClick={() => navigate('/dashboard')} className="text-sm text-indigo-600 mb-4">
-          ← Back to Dashboard
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-1.5 text-sm mb-6"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <ArrowLeft size={15} /> Back to dashboard
         </button>
 
-        <h1 className="text-2xl font-bold">{course.title}</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {course.durationValue} {course.durationUnit} · AI: {course.aiProvider} · {course.status}
-        </p>
+        <div className="flex justify-between items-start flex-wrap gap-3 mb-6">
+          <div>
+            <h1 className="sp-h2" style={{ fontSize: '1.9rem' }}>{course.title}</h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+              {course.durationValue} {course.durationUnit} · AI: {course.aiProvider} · {course.status}
+            </p>
+          </div>
+          <Link to={`/courses/${id}/notes`} className="sp-btn sp-btn-white">
+            <FileText size={15} /> Lecture notes
+          </Link>
+        </div>
 
         {progress && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mt-4">
-            <div className="flex justify-between text-sm mb-1">
-              <span>Progress</span>
-              <span>{progress.completedDays ?? 0} / {progress.totalDays ?? plan?.totalDays} days</span>
+          <div className="sp-card p-5 mb-6">
+            <div className="flex justify-between text-sm mb-2">
+              <span style={{ color: 'var(--text-muted)' }}>Progress</span>
+              <span className="font-semibold">
+                {progress.completedDays ?? 0} / {progress.totalDays ?? plan?.totalDays} days
+              </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-indigo-600 h-2 rounded-full"
-                style={{
-                  width: `${((progress.completedDays ?? 0) / (((progress.totalDays ?? plan?.totalDays) ?? 1) || 1)) * 100}%`,
-                }}
-              />
+            <div className="sp-progress-track">
+              <div className="sp-progress-fill" style={{ width: `${progressPct}%` }} />
             </div>
           </div>
         )}
 
-        <div className="flex justify-end mt-4">
-          <Link
-            to={`/courses/${id}/notes`}
-            className="text-sm bg-white border rounded-lg px-4 py-2 shadow-sm"
-          >
-            📄 Lecture Notes
-          </Link>
-        </div>
-
         {plan?.generationStatus === 'pending' && (
-          <div className="bg-white rounded-xl shadow-sm p-8 mt-6 text-center">
-            <p className="text-gray-600">Generating your study plan with AI...</p>
-            <p className="text-xs text-gray-400 mt-1">This can take up to a minute. Refreshing automatically.</p>
+          <div className="sp-card text-center py-14">
+            <span className="sp-pulse-ring inline-block mb-4" />
+            <p style={{ color: 'var(--text-muted)' }}>Generating your study plan with AI...</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+              This can take up to a minute. Refreshing automatically.
+            </p>
           </div>
         )}
 
         {plan?.generationStatus === 'failed' && (
-          <div className="bg-white rounded-xl shadow-sm p-8 mt-6 text-center">
-            <p className="text-red-500 mb-3">{plan.generationError || 'Plan generation failed.'}</p>
-            <button
-              onClick={handleRetry}
-              disabled={retrying}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-            >
-              {retrying ? 'Retrying...' : 'Retry Generation'}
+          <div className="sp-card text-center py-14">
+            <p className="mb-4" style={{ color: '#DC2626' }}>
+              {plan.generationError || 'Plan generation failed.'}
+            </p>
+            <button onClick={handleRetry} disabled={retrying} className="sp-btn sp-btn-primary">
+              <RotateCcw size={15} /> {retrying ? 'Retrying...' : 'Retry generation'}
             </button>
           </div>
         )}
 
         {plan?.generationStatus === 'completed' && (
-          <div className="mt-6 space-y-2">
+          <div className="flex flex-col gap-2.5">
             {plan.days.map((day) => (
-              <Link
-                key={day.dayNumber}
-                to={`/courses/${id}/days/${day.dayNumber}`}
-                className="block bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition"
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">
-                      Day {day.dayNumber}: {day.topic}
-                    </p>
-                    <p className="text-xs text-gray-500">{day.estimatedMinutes} min</p>
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      day.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}
-                  >
-                    {day.status}
-                  </span>
+              <Link key={day.dayNumber} to={`/courses/${id}/days/${day.dayNumber}`} className="sp-day-card">
+                <span className="sp-day-badge">DAY {String(day.dayNumber).padStart(2, '0')}</span>
+                <div className="sp-topic">
+                  <h5>{day.topic}</h5>
+                  <p>{day.estimatedMinutes} min</p>
                 </div>
+                <span className={`sp-chip ${day.status === 'completed' ? 'completed' : 'locked'}`}>
+                  {day.status === 'completed' ? 'Completed' : 'Pending'}
+                </span>
+                <span style={{ color: 'var(--text-tertiary)' }}>
+                  {day.status === 'completed' ? <Check size={15} /> : <Clock size={15} />}
+                </span>
               </Link>
             ))}
           </div>

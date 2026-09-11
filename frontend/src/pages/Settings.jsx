@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { updateProfile, changePassword, deleteAccount, logoutUser } from '../api/auth.api';
+import { Trash2 } from 'lucide-react';
+import { updateProfile, changePassword, deleteAccount } from '../api/auth.api';
 import { useAuthStore } from '../store/authStore';
 import Navbar from '../components/Navbar';
 
@@ -29,10 +30,7 @@ export default function Settings() {
 
   const handleProfileChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setProfile({
-      ...profile,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value,
-    });
+    setProfile({ ...profile, [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value });
   };
 
   const handleProfileSave = async (e) => {
@@ -79,148 +77,87 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="sp-page-bg">
       <Navbar />
-      <div className="max-w-xl mx-auto p-6 space-y-6">
-        <h1 className="text-xl font-semibold">Settings</h1>
+      <div className="max-w-xl mx-auto px-6 py-10 flex flex-col gap-6">
+        <h1 className="sp-h2" style={{ fontSize: '1.7rem' }}>Settings</h1>
 
-        {/* Profile / preferences */}
-        <form onSubmit={handleProfileSave} className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-          <h2 className="font-medium">Study Preferences</h2>
+        <form onSubmit={handleProfileSave} className="sp-card p-6 flex flex-col gap-4">
+          <h2 className="font-semibold text-sm">Study preferences</h2>
 
           <div>
-            <label className="text-sm font-medium">Daily reminder time</label>
-            <input
-              type="time"
-              name="reminderTime"
-              className="w-full border rounded-lg px-3 py-2 mt-1"
-              value={profile.reminderTime}
-              onChange={handleProfileChange}
-            />
+            <label className="sp-label">Daily reminder time</label>
+            <input type="time" name="reminderTime" className="sp-input" value={profile.reminderTime} onChange={handleProfileChange} />
           </div>
 
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              name="notificationsEnabled"
-              checked={profile.notificationsEnabled}
-              onChange={handleProfileChange}
-            />
+            <input type="checkbox" name="notificationsEnabled" checked={profile.notificationsEnabled} onChange={handleProfileChange} />
             Enable notifications
           </label>
 
           <div>
-            <label className="text-sm font-medium">Preferred AI provider</label>
-            <select
-              name="aiProviderPreference"
-              className="w-full border rounded-lg px-3 py-2 mt-1"
-              value={profile.aiProviderPreference}
-              onChange={handleProfileChange}
-            >
-              <option value="gemini">Gemini</option>
-              <option value="openai">OpenAI</option>
-              <option value="groq">Groq</option>
-            </select>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium">Weekly goal (days)</label>
-              <input
-                type="number"
-                name="weeklyGoalDays"
-                min={1}
-                max={7}
-                className="w-full border rounded-lg px-3 py-2 mt-1"
-                value={profile.weeklyGoalDays}
-                onChange={handleProfileChange}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="text-sm font-medium">Weekly goal (minutes)</label>
-              <input
-                type="number"
-                name="weeklyGoalMinutes"
-                min={0}
-                className="w-full border rounded-lg px-3 py-2 mt-1"
-                value={profile.weeklyGoalMinutes}
-                onChange={handleProfileChange}
-              />
+            <label className="sp-label">Preferred AI provider</label>
+            <div className="grid grid-cols-3 gap-2">
+              {['gemini', 'openai', 'groq'].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setProfile({ ...profile, aiProviderPreference: p })}
+                  className="text-sm font-semibold py-2.5 rounded-md border capitalize transition-all"
+                  style={
+                    profile.aiProviderPreference === p
+                      ? { background: 'var(--green-tint)', borderColor: 'var(--green-border)', color: 'var(--green-dark)' }
+                      : { background: '#fff', borderColor: 'var(--border)', color: 'var(--text-muted)' }
+                  }
+                >
+                  {p}
+                </button>
+              ))}
             </div>
           </div>
 
-          <button
-            disabled={savingProfile}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg disabled:opacity-50"
-          >
-            {savingProfile ? 'Saving...' : 'Save Preferences'}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="sp-label">Weekly goal (days)</label>
+              <input type="number" name="weeklyGoalDays" min={1} max={7} className="sp-input" value={profile.weeklyGoalDays} onChange={handleProfileChange} />
+            </div>
+            <div>
+              <label className="sp-label">Weekly goal (minutes)</label>
+              <input type="number" name="weeklyGoalMinutes" min={0} className="sp-input" value={profile.weeklyGoalMinutes} onChange={handleProfileChange} />
+            </div>
+          </div>
+
+          <button disabled={savingProfile} className="sp-btn sp-btn-primary w-full mt-1">
+            {savingProfile ? 'Saving...' : 'Save preferences'}
           </button>
         </form>
 
-        {/* Change password */}
-        <form onSubmit={handlePasswordChange} className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-          <h2 className="font-medium">Change Password</h2>
-          <input
-            type="password"
-            placeholder="Current password"
-            className="w-full border rounded-lg px-3 py-2"
-            value={pwForm.currentPassword}
-            onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
-            required
-          />
-          <input
-            type="password"
-            placeholder="New password (min 8 chars)"
-            className="w-full border rounded-lg px-3 py-2"
-            value={pwForm.newPassword}
-            onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
-            minLength={8}
-            required
-          />
-          <button
-            disabled={savingPw}
-            className="w-full bg-gray-800 text-white py-2 rounded-lg disabled:opacity-50"
-          >
-            {savingPw ? 'Updating...' : 'Change Password'}
+        <form onSubmit={handlePasswordChange} className="sp-card p-6 flex flex-col gap-4">
+          <h2 className="font-semibold text-sm">Change password</h2>
+          <input type="password" placeholder="Current password" className="sp-input" value={pwForm.currentPassword} onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })} required />
+          <input type="password" placeholder="New password (min 8 chars)" className="sp-input" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })} minLength={8} required />
+          <button disabled={savingPw} className="sp-btn sp-btn-white w-full">
+            {savingPw ? 'Updating...' : 'Change password'}
           </button>
         </form>
 
-        {/* Danger zone */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-red-200">
-          <h2 className="font-medium text-red-600 mb-3">Danger Zone</h2>
+        <div className="sp-card p-6" style={{ borderColor: '#FECACA' }}>
+          <h2 className="font-semibold text-sm mb-3" style={{ color: '#DC2626' }}>Danger zone</h2>
           {!showDeleteConfirm ? (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="text-sm text-red-600 border border-red-300 rounded-lg px-4 py-2"
-            >
-              Delete Account
+            <button onClick={() => setShowDeleteConfirm(true)} className="sp-icon-btn danger">
+              <Trash2 size={13} /> Delete account
             </button>
           ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600">
+            <div className="flex flex-col gap-3">
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                 This permanently deletes your account and all data. Enter your password to confirm.
               </p>
-              <input
-                type="password"
-                placeholder="Password"
-                className="w-full border rounded-lg px-3 py-2"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-              />
+              <input type="password" placeholder="Password" className="sp-input" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
               <div className="flex gap-2">
-                <button
-                  onClick={handleDeleteAccount}
-                  disabled={deleting || !deletePassword}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-                >
-                  {deleting ? 'Deleting...' : 'Confirm Delete'}
+                <button onClick={handleDeleteAccount} disabled={deleting || !deletePassword} className="sp-btn" style={{ background: '#DC2626', color: '#fff' }}>
+                  {deleting ? 'Deleting...' : 'Confirm delete'}
                 </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="border px-4 py-2 rounded-lg text-sm"
-                >
-                  Cancel
-                </button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="sp-btn sp-btn-white">Cancel</button>
               </div>
             </div>
           )}

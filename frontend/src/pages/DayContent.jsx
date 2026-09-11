@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ArrowLeft, Layers, HelpCircle, Check } from 'lucide-react';
 import { getDayContent, markDayComplete } from '../api/plan.api';
 import api from '../api/axios';
-import Navbar from '../components/Navbar';
 import AIContentRenderer from '../components/AIContentRenderer';
+import Navbar from '../components/Navbar';
 
 export default function DayContent() {
   const { id, dayNumber } = useParams();
@@ -27,9 +28,7 @@ export default function DayContent() {
     }
   };
 
-  useEffect(() => {
-    loadDay();
-  }, [id, dayNumber]);
+  useEffect(() => { loadDay(); }, [id, dayNumber]);
 
   const handleComplete = async () => {
     setCompleting(true);
@@ -64,106 +63,96 @@ export default function DayContent() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (!day) return <div className="p-8 text-center">Day not found</div>;
+  if (loading) {
+    return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Loading...</p></div>;
+  }
+  if (!day) {
+    return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Day not found</p></div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="sp-page-bg">
       <Navbar />
-      <div className="max-w-2xl mx-auto p-6">
-        <button onClick={() => navigate(`/courses/${id}`)} className="text-sm text-indigo-600 mb-4">
-          ← Back to Course
+      <div className="max-w-2xl mx-auto px-6 py-10">
+        <button onClick={() => navigate(`/courses/${id}`)} className="flex items-center gap-1.5 text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+          <ArrowLeft size={15} /> Back to course
         </button>
 
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start gap-4 mb-2">
           <div>
-            <h1 className="text-2xl font-bold">
-              Day {day.dayNumber}: {day.topic}
-            </h1>
+            <span className="sp-day-badge">DAY {String(day.dayNumber).padStart(2, '0')}</span>
+            <h1 className="sp-h2 mt-1" style={{ fontSize: '1.7rem' }}>{day.topic}</h1>
             {day.subtopics?.length > 0 && (
-              <p className="text-sm text-gray-500 mt-1">{day.subtopics.join(' · ')}</p>
+              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{day.subtopics.join(' · ')}</p>
             )}
           </div>
-          <span
-            className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${day.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-              }`}
-          >
-            {day.status}
+          <span className={`sp-chip ${day.status === 'completed' ? 'completed' : 'locked'}`}>
+            {day.status === 'completed' ? 'Completed' : 'Pending'}
           </span>
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Link
-            to={`/courses/${id}/days/${dayNumber}/flashcards`}
-            className="text-sm bg-white border rounded-lg px-3 py-2 shadow-sm"
-          >
-            🗂️ Flashcards
+          <Link to={`/courses/${id}/days/${dayNumber}/flashcards`} className="sp-btn sp-btn-white">
+            <Layers size={15} /> Flashcards
           </Link>
-          <Link
-            to={`/courses/${id}/days/${dayNumber}/quiz`}
-            className="text-sm bg-white border rounded-lg px-3 py-2 shadow-sm"
-          >
-            📝 Quiz
+          <Link to={`/courses/${id}/days/${dayNumber}/quiz`} className="sp-btn sp-btn-white">
+            <HelpCircle size={15} /> Quiz
           </Link>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+        <div className="sp-card p-6 mt-6">
           {day.content ? (
-            <AIContentRenderer content={day.content} className="prose prose-sm max-w-none" />
+            <AIContentRenderer content={day.content} className="text-sm" />
           ) : (
-            <p className="text-gray-400 text-sm">No content generated yet.</p>
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No content generated yet.</p>
           )}
 
           {day.keyConcepts?.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-semibold text-sm mb-2">Key Concepts</h3>
-              <ul className="list-disc list-inside text-sm space-y-1">
+            <div className="mt-6 pt-5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <h3 className="text-sm font-semibold mb-2">Key concepts</h3>
+              <ul className="text-sm flex flex-col gap-1.5">
                 {day.keyConcepts.map((k, i) => (
-                  <li key={i}>{k}</li>
+                  <li key={i} className="flex items-start gap-2">
+                    <span style={{ color: 'var(--green-primary)' }}>•</span> {k}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
 
           {day.tips?.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-semibold text-sm mb-2">Tips</h3>
-              <ul className="list-disc list-inside text-sm space-y-1 text-gray-600">
+            <div className="mt-5">
+              <h3 className="text-sm font-semibold mb-2">Tips</h3>
+              <ul className="text-sm flex flex-col gap-1.5" style={{ color: 'var(--text-muted)' }}>
                 {day.tips.map((t, i) => (
-                  <li key={i}>{t}</li>
+                  <li key={i} className="flex items-start gap-2">
+                    <span style={{ color: 'var(--green-primary)' }}>•</span> {t}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
         </div>
 
-        {/* Session logging */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mt-4 flex items-center gap-3">
-          <label className="text-sm">Log study time:</label>
+        <div className="sp-card p-4 mt-4 flex items-center gap-3 flex-wrap">
+          <label className="text-sm font-medium">Log study time:</label>
           <input
             type="number"
             min={1}
             value={sessionMinutes}
             onChange={(e) => setSessionMinutes(Number(e.target.value))}
-            className="border rounded-lg px-2 py-1 w-20 text-sm"
+            className="sp-input"
+            style={{ width: 80 }}
           />
-          <span className="text-sm text-gray-500">min</span>
-          <button
-            onClick={handleLogSession}
-            disabled={logging}
-            className="ml-auto text-sm bg-gray-100 px-3 py-1.5 rounded-lg disabled:opacity-50"
-          >
-            {logging ? 'Logging...' : 'Log Session'}
+          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>min</span>
+          <button onClick={handleLogSession} disabled={logging} className="sp-btn sp-btn-white ml-auto">
+            {logging ? 'Logging...' : 'Log session'}
           </button>
         </div>
 
         {day.status !== 'completed' && (
-          <button
-            onClick={handleComplete}
-            disabled={completing}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg mt-4 disabled:opacity-50"
-          >
-            {completing ? 'Marking...' : 'Mark Day Complete'}
+          <button onClick={handleComplete} disabled={completing} className="sp-btn sp-btn-primary sp-btn-lg w-full mt-4">
+            <Check size={17} /> {completing ? 'Marking...' : 'Mark day complete'}
           </button>
         )}
       </div>

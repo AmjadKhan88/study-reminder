@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Plus, Flame, Trophy, BookOpen, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
 import { getMyCourses, archiveCourse, unarchiveCourse, deleteCourse } from '../api/courses.api';
 import { getSummary } from '../api/stats.api';
 import Navbar from '../components/Navbar';
@@ -16,16 +17,14 @@ export default function Dashboard() {
       const [coursesRes, summaryRes] = await Promise.all([getMyCourses(), getSummary()]);
       setCourses(coursesRes.data.courses || coursesRes.data);
       setSummary(summaryRes.data);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load dashboard');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const handleArchiveToggle = async (course) => {
     try {
@@ -48,52 +47,67 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="sp-page-bg flex items-center justify-center">
+        <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="sp-page-bg">
       <Navbar />
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-5xl mx-auto px-6 py-10">
         {summary && (
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <StatCard label="Current Streak" value={`${summary.currentStreak ?? 0} days`} />
-            <StatCard label="Longest Streak" value={`${summary.longestStreak ?? 0} days`} />
-            <StatCard label="Active Courses" value={courses.filter((c) => !c.archived).length} />
+          <div className="grid grid-cols-3 gap-4 mb-10">
+            <div className="sp-stat-card">
+              <div className="flex justify-center mb-2"><Flame size={18} style={{ color: 'var(--green-primary)' }} /></div>
+              <p className="sp-stat-value">{summary.currentStreak ?? 0}</p>
+              <p className="sp-stat-label">Current streak (days)</p>
+            </div>
+            <div className="sp-stat-card">
+              <div className="flex justify-center mb-2"><Trophy size={18} style={{ color: 'var(--green-primary)' }} /></div>
+              <p className="sp-stat-value">{summary.longestStreak ?? 0}</p>
+              <p className="sp-stat-label">Longest streak (days)</p>
+            </div>
+            <div className="sp-stat-card">
+              <div className="flex justify-center mb-2"><BookOpen size={18} style={{ color: 'var(--green-primary)' }} /></div>
+              <p className="sp-stat-value">{courses.filter((c) => !c.archived).length}</p>
+              <p className="sp-stat-label">Active courses</p>
+            </div>
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Your Courses</h2>
-          <Link to="/courses/new" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">
-            + New Course
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="sp-h2" style={{ fontSize: '1.5rem' }}>Your courses</h2>
+          <Link to="/courses/new" className="sp-btn sp-btn-primary">
+            <Plus size={16} /> New course
           </Link>
         </div>
 
         {courses.length === 0 ? (
-          <p className="text-gray-500 text-center py-12">No courses yet. Create your first one!</p>
+          <div className="sp-card text-center py-16">
+            <p style={{ color: 'var(--text-muted)' }}>No courses yet. Create your first one to get a daily plan.</p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             {courses.map((course) => (
-              <div key={course._id} className="bg-white rounded-lg shadow-sm p-4 flex justify-between items-center">
+              <div key={course._id} className="sp-card p-5 flex justify-between items-center transition-all">
                 <Link to={`/courses/${course._id}`} className="flex-1">
-                  <h3 className="font-medium">{course.title}</h3>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="font-semibold">{course.title}</h3>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
                     {course.durationValue} {course.durationUnit} · {course.status}
                     {course.archived && ' · Archived'}
                   </p>
                 </Link>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handleArchiveToggle(course)}
-                    className="text-xs text-gray-500 border rounded px-2 py-1"
-                  >
+                  <button onClick={() => handleArchiveToggle(course)} className="sp-icon-btn">
+                    {course.archived ? <ArchiveRestore size={13} /> : <Archive size={13} />}
                     {course.archived ? 'Unarchive' : 'Archive'}
                   </button>
-                  <button
-                    onClick={() => handleDelete(course._id)}
-                    className="text-xs text-red-500 border border-red-200 rounded px-2 py-1"
-                  >
-                    Delete
+                  <button onClick={() => handleDelete(course._id)} className="sp-icon-btn danger">
+                    <Trash2 size={13} /> Delete
                   </button>
                 </div>
               </div>
@@ -101,15 +115,6 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value }) {
-  return (
-    <div className="bg-white rounded-lg shadow-sm p-4 text-center">
-      <p className="text-2xl font-bold text-indigo-600">{value}</p>
-      <p className="text-xs text-gray-500 mt-1">{label}</p>
     </div>
   );
 }

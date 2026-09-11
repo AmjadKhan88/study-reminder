@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ArrowLeft, Upload, Trash2, FileText, Send } from 'lucide-react';
 import { uploadNote, getNotes, deleteNote, askQuestion } from '../api/notes.api';
+import AIContentRenderer from '../components/AIContentRenderer';
 import Navbar from '../components/Navbar';
 
 export default function Notes() {
@@ -25,11 +27,8 @@ export default function Notes() {
     }
   }, [id]);
 
-  useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+  useEffect(() => { loadNotes(); }, [loadNotes]);
 
-  // Poll while any note is still "processing"
   useEffect(() => {
     if (!notes.some((n) => n.status === 'processing')) return;
     const interval = setInterval(loadNotes, 3000);
@@ -78,93 +77,87 @@ export default function Notes() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  const statusStyle = (status) => {
+    if (status === 'ready') return { background: 'var(--green-mint)', color: 'var(--green-dark)', border: '1px solid var(--green-border)' };
+    if (status === 'failed') return { background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' };
+    return { background: 'var(--bg-subtle)', color: 'var(--text-tertiary)', border: '1px solid var(--border)' };
+  };
+
+  if (loading) {
+    return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Loading...</p></div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="sp-page-bg">
       <Navbar />
-      <div className="max-w-2xl mx-auto p-6">
-        <button onClick={() => navigate(`/courses/${id}`)} className="text-sm text-indigo-600 mb-4">
-          ← Back to Course
+      <div className="max-w-2xl mx-auto px-6 py-10">
+        <button onClick={() => navigate(`/courses/${id}`)} className="flex items-center gap-1.5 text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+          <ArrowLeft size={15} /> Back to course
         </button>
 
-        <h1 className="text-xl font-semibold mb-4">Lecture Notes</h1>
+        <h1 className="sp-h2 mb-6" style={{ fontSize: '1.7rem' }}>Lecture notes</h1>
 
-        <label className="block bg-white rounded-xl shadow-sm p-4 text-center border-2 border-dashed cursor-pointer mb-6">
-          <input
-            type="file"
-            accept=".pdf,.docx,.txt"
-            className="hidden"
-            onChange={handleFileChange}
-            disabled={uploading}
-          />
-          <span className="text-sm text-gray-600">
-            {uploading ? 'Uploading...' : 'Click to upload PDF, DOCX or TXT (max 20MB)'}
-          </span>
+        <label className="sp-uploader-box block cursor-pointer mb-6">
+          <input type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={handleFileChange} disabled={uploading} />
+          <div className="sp-uploader-icon"><Upload size={18} /></div>
+          <p className="text-sm font-semibold">{uploading ? 'Uploading...' : 'Click to upload'}</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>PDF, DOCX or TXT (max 20MB)</p>
         </label>
 
-        <div className="space-y-2 mb-8">
-          {notes.length === 0 && <p className="text-gray-400 text-sm text-center">No notes uploaded yet.</p>}
+        <div className="flex flex-col gap-2.5 mb-8">
+          {notes.length === 0 && (
+            <p className="text-sm text-center py-6" style={{ color: 'var(--text-tertiary)' }}>No notes uploaded yet.</p>
+          )}
           {notes.map((note) => (
-            <div key={note._id} className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium text-sm">{note.title}</p>
-                  <p className="text-xs text-gray-400">
-                    {note.originalFilename} · {(note.fileSizeBytes / 1024).toFixed(0)} KB
-                  </p>
+            <div key={note._id} className="sp-card p-4">
+              <div className="flex justify-between items-center gap-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <FileText size={16} className="mt-0.5 shrink-0" style={{ color: 'var(--green-primary)' }} />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{note.title}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                      {note.originalFilename} · {(note.fileSizeBytes / 1024).toFixed(0)} KB
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${note.status === 'ready'
-                        ? 'bg-green-100 text-green-700'
-                        : note.status === 'failed'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}
-                  >
-                    {note.status}
-                  </span>
-                  <button
-                    onClick={() => handleDelete(note._id)}
-                    className="text-xs text-red-500 border border-red-200 rounded px-2 py-1"
-                  >
-                    Delete
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="sp-chip" style={statusStyle(note.status)}>{note.status}</span>
+                  <button onClick={() => handleDelete(note._id)} className="sp-icon-btn danger">
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
               {note.status === 'failed' && note.errorMessage && (
-                <p className="text-xs text-red-500 mt-2">{note.errorMessage}</p>
+                <p className="text-xs mt-2" style={{ color: '#DC2626' }}>{note.errorMessage}</p>
               )}
               {note.status === 'ready' && note.summary && (
-                <p className="text-xs text-gray-500 mt-2">{note.summary}</p>
+                <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>{note.summary}</p>
               )}
             </div>
           ))}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <h2 className="font-semibold text-sm mb-3">Ask AI about your notes</h2>
+        <div className="sp-card p-5">
+          <h2 className="text-sm font-semibold mb-3">Ask AI about your notes</h2>
           <form onSubmit={handleAsk} className="flex gap-2">
             <input
-              className="flex-1 border rounded-lg px-3 py-2 text-sm"
+              className="sp-input"
               placeholder="Ask a question about your uploaded notes..."
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
             />
-            <button
-              disabled={asking}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50"
-            >
-              {asking ? '...' : 'Ask'}
+            <button disabled={asking} className="sp-btn sp-btn-primary" style={{ paddingInline: 16 }}>
+              <Send size={15} />
             </button>
           </form>
 
           {answer && (
-            <div className="mt-4 bg-gray-50 rounded-lg p-3 text-sm">
-              <p>{answer.answer}</p>
+            <div className="mt-4 rounded-lg p-4" style={{ background: 'var(--green-tint)', border: '1px solid var(--green-border)' }}>
+              <AIContentRenderer content={answer.answer} className="text-sm" />
               {answer.sources?.length > 0 && (
-                <p className="text-xs text-gray-400 mt-2">Based on {answer.sources.length} note excerpt(s)</p>
+                <p className="text-xs mt-2" style={{ color: 'var(--green-dark)' }}>
+                  Based on {answer.sources.length} note excerpt(s)
+                </p>
               )}
             </div>
           )}
