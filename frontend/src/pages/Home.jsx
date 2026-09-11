@@ -1,291 +1,345 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
 
 export default function Home() {
   return (
-    <div style={{ fontFamily: 'var(--font-body)' }} className="bg-[#FCFAF4] text-[#132A3A]">
-      <Header />
-      <Hero />
-      <Stats />
-      <Features />
-      <HowItWorks />
-      <CTA />
-      <Footer />
-    </div>
-  );
-}
+    <div className="min-h-screen" style={{ background: '#EDEEE6', color: '#1C2333' }}>
+      <style>{`
+        .font-display { font-family: 'Fraunces', serif; }
+        .font-body { font-family: 'Inter', sans-serif; }
+        @media (prefers-reduced-motion: reduce) {
+          * { animation: none !important; transition: none !important; }
+        }
+      `}</style>
 
-function Header() {
-  return (
-    <header className="max-w-6xl mx-auto flex items-center justify-between px-6 py-6">
-      <span style={{ fontFamily: 'var(--font-display)' }} className="text-xl font-semibold">
-        StudyPilot
-      </span>
-      <nav className="hidden md:flex items-center gap-8 text-sm text-[#5A7A8C]">
-        <a href="#features" className="hover:text-[#132A3A]">Features</a>
-        <a href="#how" className="hover:text-[#132A3A]">How it works</a>
-        <Link to="/login" className="hover:text-[#132A3A]">Log in</Link>
-      </nav>
-      <Link
-        to="/register"
-        className="text-sm font-medium bg-[#132A3A] text-[#FCFAF4] px-4 py-2 rounded-sm hover:bg-[#0d1f2c] transition-colors"
-      >
-        Get started
-      </Link>
-    </header>
-  );
-}
-
-function Hero() {
-  return (
-    <section className="max-w-6xl mx-auto px-6 pt-12 pb-24 grid md:grid-cols-2 gap-16 items-center">
-      <div>
-        <h1
-          style={{ fontFamily: 'var(--font-display)' }}
-          className="text-5xl md:text-[3.4rem] leading-[1.08] font-medium tracking-tight"
-        >
-          Tell it what you're
-          <br />
-          learning.
-          <br />
-          <span className="relative inline-block">
-            It builds the plan.
-            <svg
-              className="absolute left-0 -bottom-2 w-full"
-              height="10"
-              viewBox="0 0 300 10"
-              preserveAspectRatio="none"
-            >
-              <path d="M2 7 Q150 2 298 7" stroke="#F4B740" strokeWidth="5" fill="none" strokeLinecap="round" />
-            </svg>
-          </span>
-        </h1>
-
-        <p className="mt-7 text-lg text-[#3F5B6B] max-w-md leading-relaxed">
-          Give StudyPilot a topic and a deadline. It lays out a day-by-day
-          plan, writes the lessons, and quizzes you as you go — so you spend
-          your time learning, not planning.
-        </p>
-
-        <div className="mt-9 flex items-center gap-4">
+      {/* Nav */}
+      <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between font-body">
+        <span className="font-display text-xl font-semibold tracking-tight">StudyPilot</span>
+        <nav className="flex items-center gap-6">
+          <Link to="/login" className="text-sm hover:opacity-70 transition-opacity">
+            Log in
+          </Link>
           <Link
             to="/register"
-            className="bg-[#132A3A] text-[#FCFAF4] px-6 py-3 rounded-sm text-sm font-medium hover:bg-[#0d1f2c] transition-colors"
+            className="text-sm px-4 py-2 rounded-sm text-white"
+            style={{ background: '#1C2333' }}
           >
-            Start your first plan
+            Start planning
           </Link>
-          <a href="#how" className="text-sm font-medium text-[#132A3A] underline decoration-[#5A7A8C] underline-offset-4">
-            See how it works
-          </a>
+        </nav>
+      </header>
+
+      {/* Hero — the one orchestrated motion sequence on the page */}
+      <section className="max-w-6xl mx-auto px-6 pt-10 pb-24 grid md:grid-cols-2 gap-16 items-center">
+        <div>
+          <motion.p
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={0}
+            className="font-body text-sm mb-4"
+            style={{ color: '#C9922E' }}
+          >
+            Tell it what you want to learn
+          </motion.p>
+
+          <motion.h1
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={1}
+            className="font-display text-5xl md:text-6xl leading-[1.05] font-semibold tracking-tight"
+          >
+            A study plan, written for the day you're actually having.
+          </motion.h1>
+
+          <motion.p
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={2}
+            className="font-body text-lg mt-6 max-w-md"
+            style={{ color: '#4A5163' }}
+          >
+            Give StudyPilot an outline and a deadline. It breaks it into daily
+            lessons, flashcards, and quizzes — then keeps you honest with a
+            streak you won't want to break.
+          </motion.p>
+
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={3}
+            className="flex items-center gap-4 mt-8 font-body"
+          >
+            <Link
+              to="/register"
+              className="px-6 py-3 rounded-sm text-white text-sm font-medium inline-block transition-transform hover:-translate-y-0.5"
+              style={{ background: '#1C2333' }}
+            >
+              Create your first plan
+            </Link>
+            <Link to="/login" className="text-sm underline underline-offset-4">
+              I already have an account
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={4}
+            className="flex gap-8 mt-12 font-body"
+          >
+            <Stat value="3" label="AI providers to choose from" />
+            <Stat value="1" label="plan, broken into daily steps" />
+            <Stat value="0" label="spreadsheets required" />
+          </motion.div>
         </div>
-      </div>
 
-      <DayCardMockup />
-    </section>
-  );
-}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, rotate: 4 }}
+          animate={{ opacity: 1, scale: 1, rotate: -2 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+        >
+          <DayCardScene />
+        </motion.div>
+      </section>
 
-function DayCardMockup() {
-  return (
-    <div className="relative">
-      <div className="absolute -inset-3 border border-[#5A7A8C]/25 rounded-sm -rotate-1" aria-hidden="true" />
-      <div className="relative bg-[#132A3A] text-[#FCFAF4] rounded-sm p-7 shadow-[0_20px_50px_-15px_rgba(19,42,58,0.4)]">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-[#8FA9B8]">Day 12 of 30</p>
-            <p style={{ fontFamily: 'var(--font-display)' }} className="text-xl mt-1">
-              Neural Network Basics
-            </p>
+      {/* How it works */}
+      <section className="border-t" style={{ borderColor: '#D8D9CE' }}>
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          <Reveal>
+            <h2 className="font-display text-3xl font-semibold mb-12 max-w-md">
+              From outline to habit, in three steps.
+            </h2>
+          </Reveal>
+          <div className="grid md:grid-cols-3 gap-10 font-body">
+            <Reveal delay={0}>
+              <Step n="01" title="Describe what you're learning" body="Paste your syllabus, a course outline, or just write out the topics. Set a deadline — a few weeks or a few months." />
+            </Reveal>
+            <Reveal delay={0.1}>
+              <Step n="02" title="Get a day-by-day plan" body="Your chosen AI provider breaks it into daily topics with explanations, key concepts, and study time estimates." />
+            </Reveal>
+            <Reveal delay={0.2}>
+              <Step n="03" title="Study, review, repeat" body="Work through each day, test yourself with generated flashcards and quizzes, and watch your streak build." />
+            </Reveal>
           </div>
-          <ProgressRing percent={68} />
         </div>
+      </section>
 
-        <ul className="mt-6 space-y-3 text-sm">
-          <CheckItem label="Read: Forward propagation" done />
-          <CheckItem label="Key concepts: 4 flashcards" done />
-          <CheckItem label="Quiz: 8 questions" />
-          <CheckItem label="Log today's session" />
-        </ul>
-
-        <div className="mt-6 pt-5 border-t border-[#2D4456] flex items-center justify-between text-xs text-[#8FA9B8]">
-          <span>~45 min today</span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#F4B740]" />
-            9-day streak
-          </span>
+      {/* Features */}
+      <section className="border-t" style={{ borderColor: '#D8D9CE' }}>
+        <div className="max-w-6xl mx-auto px-6 py-20 font-body">
+          <div className="grid md:grid-cols-5 gap-8">
+            <Reveal className="md:col-span-3">
+              <FeatureCard
+                title="Ask questions about your own notes"
+                body="Upload lecture PDFs, DOCX, or text files. StudyPilot reads them, summarizes the key concepts, and answers questions pulled straight from what you uploaded — not a generic web answer."
+              />
+            </Reveal>
+            <Reveal className="md:col-span-2" delay={0.1}>
+              <FeatureCard
+                dark
+                title="Streaks that mean it"
+                body="Set a weekly goal in days and minutes. StudyPilot tracks what you actually finish, not what you planned to."
+              />
+            </Reveal>
+            <Reveal className="md:col-span-2">
+              <FeatureCard
+                title="Test yourself, same day"
+                body="Every day's lesson comes with flashcards and a short quiz generated from that day's content — no separate prep."
+              />
+            </Reveal>
+            <Reveal className="md:col-span-3" delay={0.1}>
+              <FeatureCard
+                title="Pick the AI that works for you"
+                body="Switch between Gemini, OpenAI, and Groq per course, so you can compare explanations or just use what you already pay for."
+              />
+            </Reveal>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="px-6 py-24" style={{ background: '#1C2333' }}>
+        <Reveal className="max-w-2xl mx-auto text-center font-body">
+          <h2 className="font-display text-4xl font-semibold text-white mb-4">
+            Stop staring at a syllabus.
+          </h2>
+          <p style={{ color: '#B9BCC9' }} className="mb-8">
+            Turn it into a plan you can actually follow, one day at a time.
+          </p>
+          <Link
+            to="/register"
+            className="inline-block px-8 py-3 rounded-sm text-sm font-medium transition-transform hover:-translate-y-0.5"
+            style={{ background: '#C9922E', color: '#1C2333' }}
+          >
+            Create your first plan
+          </Link>
+        </Reveal>
+      </section>
+
+      <footer className="max-w-6xl mx-auto px-6 py-8 font-body text-xs" style={{ color: '#7A8095' }}>
+        StudyPilot — AI-generated study plans, flashcards, and quizzes for self-directed learners.
+      </footer>
     </div>
   );
 }
 
-function CheckItem({ label, done }) {
+/* ---------------- Scroll-reveal wrapper (one style, used consistently) ---------------- */
+
+function Reveal({ children, className = '', delay = 0 }) {
   return (
-    <li className="flex items-center gap-3">
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Stat({ value, label }) {
+  return (
+    <div>
+      <p className="font-display text-2xl font-semibold">{value}</p>
+      <p className="text-xs mt-1 max-w-[9rem]" style={{ color: '#7A8095' }}>{label}</p>
+    </div>
+  );
+}
+
+function Step({ n, title, body }) {
+  return (
+    <div>
+      <p className="font-display text-sm mb-3" style={{ color: '#C9922E' }}>{n}</p>
+      <h3 className="font-display text-xl font-semibold mb-2">{title}</h3>
+      <p className="text-sm" style={{ color: '#4A5163' }}>{body}</p>
+    </div>
+  );
+}
+
+function FeatureCard({ title, body, dark }) {
+  return (
+    <div
+      className="rounded-sm p-8 h-full"
+      style={
+        dark
+          ? { background: '#1C2333', color: '#EDEEE6' }
+          : { background: '#FAFAF6', border: '1px solid #D8D9CE' }
+      }
+    >
+      <h3 className="font-display text-2xl font-semibold mb-3">{title}</h3>
+      <p style={{ color: dark ? '#B9BCC9' : '#4A5163' }}>{body}</p>
+    </div>
+  );
+}
+
+/* ---------------- Hero illustration: animated planner scene (no stock imagery) ---------------- */
+
+function DayCardScene() {
+  return (
+    <div className="relative" style={{ transform: 'rotate(-2deg)' }}>
+      {/* Back page peeking out */}
+      <div
+        className="absolute inset-0 -z-10 rounded-sm"
+        style={{
+          background: '#FAFAF6',
+          border: '1px solid #D8D9CE',
+          transform: 'rotate(3deg) translate(10px, 14px)',
+        }}
+      />
+
+      <div
+        className="rounded-sm p-7 font-body relative overflow-hidden"
+        style={{ background: '#FAFAF6', border: '1px solid #D8D9CE', boxShadow: '10px 14px 0px #D8D9CE' }}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <p className="font-display text-lg font-semibold">Day 14 of 30</p>
+          <motion.span
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
+            className="text-xs px-2 py-1 rounded-sm"
+            style={{ background: '#F0E4CD', color: '#946A15' }}
+          >
+            🔥 6-day streak
+          </motion.span>
+        </div>
+
+        <p className="text-sm mb-1" style={{ color: '#7A8095' }}>Organic Chemistry</p>
+        <p className="font-display text-2xl font-semibold mb-4">Reaction mechanisms: SN1 vs SN2</p>
+
+        <div className="space-y-2.5">
+          <ChecklistRow done label="Read core concepts" delay={0.4} />
+          <ChecklistRow done label="Review 12 flashcards" delay={0.55} />
+          <ChecklistRow label="Take the day's quiz" delay={0.7} />
+        </div>
+
+        <div className="mt-6 pt-5 flex items-center justify-between" style={{ borderTop: '1px solid #D8D9CE' }}>
+          <span className="text-xs" style={{ color: '#7A8095' }}>Est. 45 min</span>
+          <span className="text-xs font-medium" style={{ color: '#2F6B4F' }}>2 of 3 done</span>
+        </div>
+      </div>
+
+      {/* Floating flashcard, drifts gently — the single "alive" accent element */}
+      <motion.div
+        className="absolute -right-8 -top-6 rounded-sm p-3 hidden md:block"
+        style={{ background: '#1C2333', width: 108, boxShadow: '4px 6px 0px rgba(0,0,0,0.15)' }}
+        initial={{ y: 0, rotate: 8 }}
+        animate={{ y: [0, -8, 0], rotate: [8, 10, 8] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <p className="text-[10px]" style={{ color: '#B9BCC9' }}>Flashcard</p>
+        <p className="text-xs mt-1" style={{ color: '#EDEEE6' }}>SN2 = one step</p>
+      </motion.div>
+    </div>
+  );
+}
+
+function ChecklistRow({ label, done, delay = 0 }) {
+  return (
+    <motion.div
+      className="flex items-center gap-3 text-sm"
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay }}
+    >
       <span
-        className={`w-4 h-4 rounded-sm border flex-shrink-0 flex items-center justify-center ${
-          done ? 'bg-[#F4B740] border-[#F4B740]' : 'border-[#5A7A8C]'
-        }`}
+        className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0"
+        style={{ background: done ? '#2F6B4F' : 'transparent', border: done ? 'none' : '1px solid #B9BCC9' }}
       >
         {done && (
-          <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-            <path d="M1 3.5L3.2 5.5L8 1" stroke="#132A3A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <motion.path
+              d="M1.5 5L4 7.5L8.5 2"
+              stroke="white"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: delay + 0.2, duration: 0.3 }}
+            />
           </svg>
         )}
       </span>
-      <span className={done ? 'text-[#C8D6DD] line-through decoration-[#5A7A8C]' : ''}>{label}</span>
-    </li>
-  );
-}
-
-function ProgressRing({ percent }) {
-  const r = 20;
-  const c = 2 * Math.PI * r;
-  const offset = c - (percent / 100) * c;
-  return (
-    <svg width="52" height="52" viewBox="0 0 52 52">
-      <circle cx="26" cy="26" r={r} fill="none" stroke="#2D4456" strokeWidth="4" />
-      <circle
-        cx="26"
-        cy="26"
-        r={r}
-        fill="none"
-        stroke="#F4B740"
-        strokeWidth="4"
-        strokeDasharray={c}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        transform="rotate(-90 26 26)"
-      />
-      <text x="26" y="30" textAnchor="middle" fontSize="12" fill="#FCFAF4">
-        {percent}%
-      </text>
-    </svg>
-  );
-}
-
-function Stats() {
-  const items = [
-    { value: 'Any topic', label: 'you type an outline, it structures the plan' },
-    { value: 'Day by day', label: 'lessons, flashcards and quizzes generated as you go' },
-    { value: 'Your notes', label: 'upload lecture PDFs and ask questions against them' },
-  ];
-  return (
-    <section className="border-y border-[#5A7A8C]/20 bg-[#EDEAE0]">
-      <div className="max-w-6xl mx-auto px-6 py-10 grid sm:grid-cols-3 gap-8">
-        {items.map((item) => (
-          <div key={item.value}>
-            <p style={{ fontFamily: 'var(--font-display)' }} className="text-2xl">
-              {item.value}
-            </p>
-            <p className="text-sm text-[#5A7A8C] mt-1">{item.label}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Features() {
-  const features = [
-    {
-      title: 'A plan built around your outline',
-      body: 'Describe what you want to learn and pick a timeframe. StudyPilot breaks it into daily topics sized to fit the time you actually have.',
-      align: 'left',
-    },
-    {
-      title: 'Lessons, flashcards and quizzes per day',
-      body: 'Each day unlocks its own lesson content, key concepts, a flashcard set to review, and a quiz to check what stuck.',
-      align: 'right',
-    },
-    {
-      title: 'Ask your own lecture notes',
-      body: 'Upload PDFs, DOCX, or text files. StudyPilot reads them and answers questions using what you uploaded — not a generic answer.',
-      align: 'left',
-    },
-    {
-      title: 'Streaks that track real study time',
-      body: 'Every session you log builds your streak and rolls up into a weekly goal, so you can see the habit forming.',
-      align: 'right',
-    },
-  ];
-
-  return (
-    <section id="features" className="max-w-6xl mx-auto px-6 py-24 space-y-16">
-      {features.map((f) => (
-        <div
-          key={f.title}
-          className={`grid md:grid-cols-2 gap-10 items-center ${f.align === 'right' ? 'md:[&>*:first-child]:order-2' : ''}`}
-        >
-          <div className="border border-[#5A7A8C]/25 rounded-sm p-8 bg-[#FCFAF4]">
-            <h3 style={{ fontFamily: 'var(--font-display)' }} className="text-2xl mb-3">
-              {f.title}
-            </h3>
-            <p className="text-[#3F5B6B] leading-relaxed">{f.body}</p>
-          </div>
-          <div className="h-full min-h-[180px] rounded-sm bg-[#132A3A]/[0.03] border border-dashed border-[#5A7A8C]/30" />
-        </div>
-      ))}
-    </section>
-  );
-}
-
-function HowItWorks() {
-  const steps = [
-    { n: '1', title: 'Add a course', body: 'Give it a title, an outline of what to cover, and a duration.' },
-    { n: '2', title: 'Get your plan', body: 'AI lays out each day — topic, subtopics and estimated time.' },
-    { n: '3', title: 'Study & track', body: 'Work through lessons, flashcards and quizzes, day by day.' },
-  ];
-  return (
-    <section id="how" className="bg-[#132A3A] text-[#FCFAF4]">
-      <div className="max-w-6xl mx-auto px-6 py-24">
-        <h2 style={{ fontFamily: 'var(--font-display)' }} className="text-3xl mb-14 max-w-md">
-          Three steps from topic to habit
-        </h2>
-        <div className="grid md:grid-cols-3 gap-10">
-          {steps.map((s) => (
-            <div key={s.n}>
-              <span
-                style={{ fontFamily: 'var(--font-display)' }}
-                className="text-[#F4B740] text-4xl"
-              >
-                {s.n}
-              </span>
-              <h3 className="text-lg font-medium mt-4 mb-2">{s.title}</h3>
-              <p className="text-[#B7C7CF] text-sm leading-relaxed">{s.body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CTA() {
-  return (
-    <section className="max-w-6xl mx-auto px-6 py-24 text-center">
-      <h2 style={{ fontFamily: 'var(--font-display)' }} className="text-3xl md:text-4xl max-w-xl mx-auto">
-        Pick a topic. Start day one today.
-      </h2>
-      <Link
-        to="/register"
-        className="inline-block mt-8 bg-[#132A3A] text-[#FCFAF4] px-7 py-3.5 rounded-sm text-sm font-medium hover:bg-[#0d1f2c] transition-colors"
-      >
-        Create your free plan
-      </Link>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="border-t border-[#5A7A8C]/20">
-      <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-[#5A7A8C]">
-        <span style={{ fontFamily: 'var(--font-display)' }}>StudyPilot</span>
-        <div className="flex gap-6">
-          <Link to="/login" className="hover:text-[#132A3A]">Log in</Link>
-          <Link to="/register" className="hover:text-[#132A3A]">Sign up</Link>
-        </div>
-      </div>
-    </footer>
+      <span style={{ color: done ? '#4A5163' : '#1C2333', textDecoration: done ? 'line-through' : 'none' }}>
+        {label}
+      </span>
+    </motion.div>
   );
 }
