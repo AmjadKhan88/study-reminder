@@ -17,7 +17,8 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await registerUser(form);
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const { data } = await registerUser({ ...form, timezone });
       login(data.accessToken, data.user);
       toast.success('Account created!');
       navigate('/dashboard');

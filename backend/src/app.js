@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const cron = require('node-cron');
+const { sendDueReminders } = require('./services/reminder.service');
 
 const app = express();
 
@@ -53,8 +55,14 @@ app.use('/api/courses', require('./routes/course.routes'));
 app.use('/api/stats', require('./routes/stats.routes'));
 app.use('/api/search', require('./routes/search.routes'));
 
+
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
+});
+
+// Run every hour, on the hour
+cron.schedule('0 * * * *', () => {
+  sendDueReminders().catch((err) => console.error('[reminders] job failed:', err.message));
 });
 
 app.use((err, req, res, next) => {

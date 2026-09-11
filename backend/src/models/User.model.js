@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     aiProviderPreference: { type: String, enum: ['gemini', 'openai', 'groq'], default: 'gemini' },
     themePreference: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
     reminderTime: { type: String, default: '18:00' },
+    timezone: { type: String, default: 'UTC' },
     notificationsEnabled: { type: Boolean, default: true },
     pushToken: { type: String, default: null },
     currentStreak: { type: Number, default: 0 },

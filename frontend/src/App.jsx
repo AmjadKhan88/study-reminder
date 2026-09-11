@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import api from './api/axios';
 import { getMe } from './api/auth.api';
 import { useAuthStore } from './store/authStore';
+import StudyReminderSkeleton from './components/StudyReminderSkeleton';
 
 export default function App() {
   const [checking, setChecking] = useState(true);
@@ -34,7 +35,7 @@ export default function App() {
     })();
   }, []);
 
-  if (checking) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (checking) return <div className="min-h-screen flex items-center justify-center"><StudyReminderSkeleton/></div>;
 
   return (
     <Routes>

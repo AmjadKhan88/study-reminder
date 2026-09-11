@@ -27,11 +27,11 @@ function toPublicUser(user) {
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, timezone } = req.body;
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ message: 'Email already in use' });
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, password, timezone: timezone || 'UTC', });
     const accessToken = signAccessToken(user._id);
     const refreshToken = signRefreshToken(user._id);
     user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);

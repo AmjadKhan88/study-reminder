@@ -18,6 +18,7 @@ export default function Settings() {
     aiProviderPreference: user?.aiProviderPreference || 'gemini',
     weeklyGoalDays: user?.weeklyGoalDays || 5,
     weeklyGoalMinutes: user?.weeklyGoalMinutes || 300,
+    timezone: user?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -124,6 +125,14 @@ export default function Settings() {
             <div>
               <label className="sp-label">Weekly goal (minutes)</label>
               <input type="number" name="weeklyGoalMinutes" min={0} className="sp-input" value={profile.weeklyGoalMinutes} onChange={handleProfileChange} />
+            </div>
+            <div>
+              <label className="sp-label">Timezone</label>
+              <select name="timezone" className="sp-input" value={profile.timezone} onChange={handleProfileChange}>
+                {Intl.supportedValuesOf('timeZone').map((tz) => (
+                  <option key={tz} value={tz}>{tz}</option>
+                ))}
+              </select>
             </div>
           </div>
 
