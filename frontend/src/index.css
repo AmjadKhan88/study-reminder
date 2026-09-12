@@ -147,7 +147,7 @@ body {
 .loader {
   width: 60px;
   aspect-ratio: 4;
-  background: radial-gradient(closest-side at calc(100%/6) 50%,#6EE7B7 90%,#1ad88c) 0/75% 100%;
+  background: radial-gradient(closest-side at calc(100%/6) 50%,#1ad88c 90%,#fff) 0/75% 100%;
   position: relative;
   animation: l15-0 1s infinite linear;
 }

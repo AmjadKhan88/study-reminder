@@ -21,19 +21,25 @@ export default function App() {
   const [checking, setChecking] = useState(true);
   const login = useAuthStore((s) => s.login);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await api.post('/auth/refresh', {}, { withCredentials: true });
-        useAuthStore.getState().setAccessToken(data.accessToken);
-        const me = await getMe();
-        login(data.accessToken, me.data.user);
-      } catch {
-      } finally {
-        setChecking(false);
-      }
-    })();
-  }, []);
+useEffect(() => {
+  (async () => {
+    const storedRefreshToken = useAuthStore.getState().refreshToken;
+    if (!storedRefreshToken) {
+      setChecking(false);
+      return;
+    }
+    try {
+      const { data } = await api.post('/auth/refresh', { refreshToken: storedRefreshToken });
+      useAuthStore.getState().setAccessToken(data.accessToken);
+      const me = await getMe();
+      login(data.accessToken, me.data.user, data.refreshToken || storedRefreshToken);
+    } catch {
+      useAuthStore.getState().logout();
+    } finally {
+      setChecking(false);
+    }
+  })();
+}, []);
 
   if (checking) return <div className="min-h-screen flex items-center justify-center"><StudyReminderSkeleton/></div>;
 
