@@ -5,6 +5,7 @@ import { ArrowLeft, FileText, Check, Clock, Lock, RotateCcw } from 'lucide-react
 import { getCourseById } from '../api/courses.api';
 import { getPlan, generatePlan, getCourseProgress } from '../api/plan.api';
 import Navbar from '../components/Navbar';
+import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -58,7 +59,7 @@ export default function CourseDetail() {
   if (loading) {
     return (
       <div className="sp-page-bg flex items-center justify-center">
-        <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
+        <StudyReminderSkeleton/>
       </div>
     );
   }

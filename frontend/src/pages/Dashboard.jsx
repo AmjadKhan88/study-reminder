@@ -6,6 +6,7 @@ import { getMyCourses, archiveCourse, unarchiveCourse, deleteCourse } from '../a
 import { getSummary } from '../api/stats.api';
 import Navbar from '../components/Navbar';
 import { getDueFlashcards } from '../api/flashcards.api';
+import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
 export default function Dashboard() {
   const [courses, setCourses] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -51,7 +52,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="sp-page-bg flex items-center justify-center">
-        <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
+        <StudyReminderSkeleton/>
       </div>
     );
   }

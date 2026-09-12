@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import { getQuiz, submitQuiz } from '../api/quiz.api';
 import Navbar from '../components/Navbar';
+import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
 
 export default function Quiz() {
   const { id, dayNumber } = useParams();
@@ -53,7 +54,7 @@ export default function Quiz() {
   };
 
   if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Loading...</p></div>;
+    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
   }
   if (!quiz) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Quiz not found</p></div>;

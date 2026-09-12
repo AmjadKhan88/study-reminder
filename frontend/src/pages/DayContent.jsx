@@ -6,6 +6,7 @@ import { getDayContent, markDayComplete } from '../api/plan.api';
 import api from '../api/axios';
 import AIContentRenderer from '../components/AIContentRenderer';
 import Navbar from '../components/Navbar';
+import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
 
 export default function DayContent() {
   const { id, dayNumber } = useParams();
@@ -64,7 +65,7 @@ export default function DayContent() {
   };
 
   if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Loading...</p></div>;
+    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
   }
   if (!day) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Day not found</p></div>;

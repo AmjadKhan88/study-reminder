@@ -5,6 +5,7 @@ import { ArrowLeft, Upload, Trash2, FileText, Send } from 'lucide-react';
 import { uploadNote, getNotes, deleteNote, askQuestion } from '../api/notes.api';
 import AIContentRenderer from '../components/AIContentRenderer';
 import Navbar from '../components/Navbar';
+import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
 
 export default function Notes() {
   const { id } = useParams();
@@ -84,7 +85,7 @@ export default function Notes() {
   };
 
   if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Loading...</p></div>;
+    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
   }
 
   return (

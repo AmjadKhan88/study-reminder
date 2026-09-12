@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import { getFlashcards, reviewFlashcard } from '../api/flashcards.api';
 import Navbar from '../components/Navbar';
+import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
 
 const RATINGS = [
   { key: 'again', label: 'Again', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA' },
@@ -49,7 +50,7 @@ export default function Flashcards() {
   };
 
   if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Loading...</p></div>;
+    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
   }
   if (cards.length === 0) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>No flashcards for this day.</p></div>;
