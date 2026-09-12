@@ -6,7 +6,8 @@ import { getCourseById } from '../api/courses.api';
 import { getPlan, generatePlan, getCourseProgress } from '../api/plan.api';
 import Navbar from '../components/Navbar';
 import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
-
+import { FileDown } from 'lucide-react';
+import { exportCourseToPdf } from '../utils/exportPdf';
 export default function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ export default function CourseDetail() {
   if (loading) {
     return (
       <div className="sp-page-bg flex items-center justify-center">
-        <StudyReminderSkeleton/>
+        <StudyReminderSkeleton />
       </div>
     );
   }
@@ -93,6 +94,16 @@ export default function CourseDetail() {
             <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
               {course.durationValue} {course.durationUnit} · AI: {course.aiProvider} · {course.status}
             </p>
+          </div>
+          <div className="flex gap-2">
+            <Link to={`/courses/${id}/notes`} className="sp-btn sp-btn-white">
+              <FileText size={15} /> Lecture notes
+            </Link>
+            {plan?.generationStatus === 'completed' && (
+              <button onClick={() => exportCourseToPdf(course, plan)} className="sp-btn sp-btn-white">
+                <FileDown size={15} /> Export plan (PDF)
+              </button>
+            )}
           </div>
           <Link to={`/courses/${id}/notes`} className="sp-btn sp-btn-white">
             <FileText size={15} /> Lecture notes

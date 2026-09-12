@@ -7,7 +7,9 @@ import api from '../api/axios';
 import AIContentRenderer from '../components/AIContentRenderer';
 import Navbar from '../components/Navbar';
 import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
-
+import { FileDown } from 'lucide-react';
+import { exportDayToPdf } from '../utils/exportPdf';
+import { getCourseById } from '../api/courses.api';
 export default function DayContent() {
   const { id, dayNumber } = useParams();
   const navigate = useNavigate();
@@ -44,6 +46,16 @@ export default function DayContent() {
     }
   };
 
+  const handleExportPdf = async () => {
+    try {
+      const { data } = await getCourseById(id);
+      const course = data.course || data;
+      exportDayToPdf(course, day);
+    } catch {
+      toast.error('Failed to export PDF');
+    }
+  };
+
   const handleLogSession = async () => {
     setLogging(true);
     try {
@@ -65,7 +77,7 @@ export default function DayContent() {
   };
 
   if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
+    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton /></div>;
   }
   if (!day) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Day not found</p></div>;
@@ -92,6 +104,8 @@ export default function DayContent() {
           </span>
         </div>
 
+
+
         <div className="flex gap-2 mt-4">
           <Link to={`/courses/${id}/days/${dayNumber}/flashcards`} className="sp-btn sp-btn-white">
             <Layers size={15} /> Flashcards
@@ -99,6 +113,18 @@ export default function DayContent() {
           <Link to={`/courses/${id}/days/${dayNumber}/quiz`} className="sp-btn sp-btn-white">
             <HelpCircle size={15} /> Quiz
           </Link>
+        </div>
+
+        <div className="flex gap-2 mt-4">
+          <Link to={`/courses/${id}/days/${dayNumber}/flashcards`} className="sp-btn sp-btn-white">
+            <Layers size={15} /> Flashcards
+          </Link>
+          <Link to={`/courses/${id}/days/${dayNumber}/quiz`} className="sp-btn sp-btn-white">
+            <HelpCircle size={15} /> Quiz
+          </Link>
+          <button onClick={handleExportPdf} className="sp-btn sp-btn-white">
+            <FileDown size={15} /> Export PDF
+          </button>
         </div>
 
         <div className="sp-card p-6 mt-6">
