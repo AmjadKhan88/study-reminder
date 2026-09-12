@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Flame, Trophy, BookOpen, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
+import { Plus, Flame, Trophy, BookOpen, Layers, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
 import { getMyCourses, archiveCourse, unarchiveCourse, deleteCourse } from '../api/courses.api';
 import { getSummary } from '../api/stats.api';
 import Navbar from '../components/Navbar';
-
+import { getDueFlashcards } from '../api/flashcards.api';
 export default function Dashboard() {
   const [courses, setCourses] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [dueCount, setDueCount] = useState(0);
   const loadData = async () => {
     setLoading(true);
     try {
-      const [coursesRes, summaryRes] = await Promise.all([getMyCourses(), getSummary()]);
+      const [coursesRes, summaryRes, dueRes] = await Promise.all([getMyCourses(), getSummary(), getDueFlashcards()]);
       setCourses(coursesRes.data.courses || coursesRes.data);
       setSummary(summaryRes.data);
+      setDueCount(dueRes.data.totalDue);
     } catch {
       toast.error('Failed to load dashboard');
     } finally {
@@ -59,6 +60,24 @@ export default function Dashboard() {
     <div className="sp-page-bg">
       <Navbar />
       <div className="max-w-5xl mx-auto px-6 py-10">
+        {dueCount > 0 && (
+          <Link
+            to="/review"
+            className="sp-card p-4 mb-6 flex items-center justify-between"
+            style={{ background: 'var(--green-tint)', borderColor: 'var(--green-border)' }}
+          >
+            <div className="flex items-center gap-3">
+              <Layers size={18} style={{ color: 'var(--green-dark)' }} />
+              <div>
+                <p className="font-semibold text-sm" style={{ color: 'var(--green-dark)' }}>
+                  {dueCount} card{dueCount !== 1 ? 's' : ''} due for review
+                </p>
+                <p className="text-xs" style={{ color: 'var(--green-dark)' }}>Tap to start reviewing</p>
+              </div>
+            </div>
+            <span className="sp-btn sp-btn-primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Review now</span>
+          </Link>
+        )}
         {summary && (
           <div className="grid grid-cols-3 gap-4 mb-10">
             <div className="sp-stat-card">

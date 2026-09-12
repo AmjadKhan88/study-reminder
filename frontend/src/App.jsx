@@ -16,7 +16,7 @@ import api from './api/axios';
 import { getMe } from './api/auth.api';
 import { useAuthStore } from './store/authStore';
 import StudyReminderSkeleton from './components/StudyReminderSkeleton';
-
+import ReviewQueue from './pages/ReviewQueue';
 export default function App() {
   const [checking, setChecking] = useState(true);
   const login = useAuthStore((s) => s.login);
@@ -51,6 +51,7 @@ export default function App() {
         <Route path="/courses/:id/days/:dayNumber/flashcards" element={<Flashcards />} />
         <Route path="/courses/:id/days/:dayNumber/quiz" element={<Quiz />} />
         <Route path="/courses/:id/notes" element={<Notes />} />
+        <Route path="/review" element={<ReviewQueue />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

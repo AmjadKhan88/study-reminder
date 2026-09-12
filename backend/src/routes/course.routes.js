@@ -63,4 +63,6 @@ router.get('/:id/notes/:noteId', noteCtrl.getNoteById);
 router.delete('/:id/notes/:noteId', noteCtrl.deleteNote);
 router.post('/:id/notes/ask', askLimiter, noteCtrl.askQuestion);
 
+router.post('/:id/days/:dayNumber/flashcards/:cardId/review', flashcardCtrl.reviewCard);
+
 module.exports = router;

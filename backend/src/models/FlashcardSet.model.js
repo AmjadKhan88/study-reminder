@@ -1,6 +1,18 @@
 const mongoose = require('mongoose');
 
-const cardSchema = new mongoose.Schema({ front: String, back: String }, { _id: false });
+const cardSchema = new mongoose.Schema(
+  {
+    front: String,
+    back: String,
+    // Spaced repetition (SM-2) state — per card, not per set
+    repetitions: { type: Number, default: 0 },
+    easeFactor: { type: Number, default: 2.5 },
+    interval: { type: Number, default: 0 }, // days
+    dueDate: { type: Date, default: Date.now },
+    lastReviewed: { type: Date, default: null },
+  },
+  { _id: true } // each card now needs its own id to be reviewed individually
+);
 
 const flashcardSetSchema = new mongoose.Schema(
   {

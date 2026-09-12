@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 const { sendDueReminders } = require('./services/reminder.service');
+const flashcardRoutes = require('./routes/flashcard.routes');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/courses', require('./routes/course.routes'));
 app.use('/api/stats', require('./routes/stats.routes'));
 app.use('/api/search', require('./routes/search.routes'));
+app.use('/api/flashcards', flashcardRoutes);
 
 
 app.use((req, res) => {
