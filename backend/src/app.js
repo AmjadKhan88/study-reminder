@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 const { sendDueReminders } = require('./services/reminder.service');
 const flashcardRoutes = require('./routes/flashcard.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -56,7 +57,7 @@ app.use('/api/courses', require('./routes/course.routes'));
 app.use('/api/stats', require('./routes/stats.routes'));
 app.use('/api/search', require('./routes/search.routes'));
 app.use('/api/flashcards', flashcardRoutes);
-
+app.use('/api/admin', adminRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
