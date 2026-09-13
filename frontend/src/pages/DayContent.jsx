@@ -105,16 +105,6 @@ export default function DayContent() {
         </div>
 
 
-
-        <div className="flex gap-2 mt-4">
-          <Link to={`/courses/${id}/days/${dayNumber}/flashcards`} className="sp-btn sp-btn-white">
-            <Layers size={15} /> Flashcards
-          </Link>
-          <Link to={`/courses/${id}/days/${dayNumber}/quiz`} className="sp-btn sp-btn-white">
-            <HelpCircle size={15} /> Quiz
-          </Link>
-        </div>
-
         <div className="flex gap-2 mt-4">
           <Link to={`/courses/${id}/days/${dayNumber}/flashcards`} className="sp-btn sp-btn-white">
             <Layers size={15} /> Flashcards
