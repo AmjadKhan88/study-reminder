@@ -86,7 +86,7 @@ export default function DayContent() {
   return (
     <div className="sp-page-bg">
       <Navbar />
-      <div className="max-w-2xl mx-auto px-6 py-10">
+      <div className="max-w-4xl mx-auto px-6 py-10">
         <button onClick={() => navigate(`/courses/${id}`)} className="flex items-center gap-1.5 text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
           <ArrowLeft size={15} /> Back to course
         </button>
