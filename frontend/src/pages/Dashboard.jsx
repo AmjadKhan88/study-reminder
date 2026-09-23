@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Flame, Trophy, BookOpen, Layers, Archive, Snowflake, ArchiveRestore, Trash2, TrendingDown } from 'lucide-react';
+import { Plus, Flame, Trophy, BookOpen, Layers, Archive, Snowflake, ArchiveRestore, Trash2, TrendingDown, ArrowRight, PlayCircle } from 'lucide-react';
 import { getMyCourses, archiveCourse, unarchiveCourse, deleteCourse } from '../api/courses.api';
 import { getSummary } from '../api/stats.api';
 import Navbar from '../components/Navbar';
@@ -111,6 +111,35 @@ export default function Dashboard() {
               <p className="sp-stat-label">Streak freeze available</p>
             </div>
           </div>
+        )}
+
+        {summary?.todayTask && (
+          <Link
+            to={`/courses/${summary.todayTask.courseId}/days/${summary.todayTask.dayNumber}`}
+            className="sp-card p-6 mb-8 flex items-center justify-between gap-4 transition-all"
+            style={{ background: 'var(--text-main)', border: 'none' }}
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div
+                className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--green-primary)' }}
+              >
+                <PlayCircle size={22} color="#fff" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium mb-0.5" style={{ color: '#6EE7B7' }}>
+                  Continue where you left off
+                </p>
+                <p className="font-semibold text-white truncate">
+                  Day {summary.todayTask.dayNumber}: {summary.todayTask.topic}
+                </p>
+                <p className="text-sm truncate" style={{ color: '#A8B5AE' }}>
+                  {summary.todayTask.courseTitle}
+                </p>
+              </div>
+            </div>
+            <ArrowRight size={20} color="#fff" className="shrink-0" />
+          </Link>
         )}
 
         <div className="flex justify-between items-center mb-5">
