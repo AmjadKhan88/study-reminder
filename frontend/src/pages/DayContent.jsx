@@ -36,8 +36,12 @@ export default function DayContent() {
   const handleComplete = async () => {
     setCompleting(true);
     try {
-      await markDayComplete(id, dayNumber);
-      toast.success('Day marked as complete!');
+      const { data } = await markDayComplete(id, dayNumber);
+      if (data.freezeUsed) {
+        toast.success('Day complete! Used a streak freeze to cover yesterday 🧊', { duration: 4000 });
+      } else {
+        toast.success('Day marked as complete!');
+      }
       loadDay();
     } catch {
       toast.error('Failed to mark complete');

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Flame, Trophy, BookOpen, Layers, Archive, ArchiveRestore, Trash2, TrendingDown } from 'lucide-react';
+import { Plus, Flame, Trophy, BookOpen, Layers, Archive, Snowflake, ArchiveRestore, Trash2, TrendingDown } from 'lucide-react';
 import { getMyCourses, archiveCourse, unarchiveCourse, deleteCourse } from '../api/courses.api';
 import { getSummary } from '../api/stats.api';
 import Navbar from '../components/Navbar';
@@ -80,7 +80,7 @@ export default function Dashboard() {
           </Link>
         )}
         {summary && (
-          <div className="grid grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-5 gap-4 mb-10">
             <div className="sp-stat-card">
               <div className="flex justify-center mb-2"><Flame size={18} style={{ color: 'var(--green-primary)' }} /></div>
               <p className="sp-stat-value">{summary.currentStreak ?? 0}</p>
@@ -101,6 +101,15 @@ export default function Dashboard() {
               <p className="sp-stat-value" style={{ color: '#DC2626' }}>Review</p>
               <p className="sp-stat-label">Weak topics</p>
             </Link>
+            <div className="sp-stat-card">
+              <div className="flex justify-center mb-2">
+                <Snowflake size={18} style={{ color: summary.streakFreezesAvailable > 0 ? '#2563EB' : 'var(--text-tertiary)' }} />
+              </div>
+              <p className="sp-stat-value" style={{ color: summary.streakFreezesAvailable > 0 ? '#2563EB' : 'var(--text-tertiary)' }}>
+                {summary.streakFreezesAvailable ?? 0}
+              </p>
+              <p className="sp-stat-label">Streak freeze available</p>
+            </div>
           </div>
         )}
 
