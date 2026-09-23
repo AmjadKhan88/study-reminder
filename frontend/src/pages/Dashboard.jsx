@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Flame, Trophy, BookOpen, Layers, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
+import { Plus, Flame, Trophy, BookOpen, Layers, Archive, ArchiveRestore, Trash2, TrendingDown } from 'lucide-react';
 import { getMyCourses, archiveCourse, unarchiveCourse, deleteCourse } from '../api/courses.api';
 import { getSummary } from '../api/stats.api';
 import Navbar from '../components/Navbar';
@@ -52,7 +52,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="sp-page-bg flex items-center justify-center">
-        <StudyReminderSkeleton/>
+        <StudyReminderSkeleton />
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function Dashboard() {
           </Link>
         )}
         {summary && (
-          <div className="grid grid-cols-3 gap-4 mb-10">
+          <div className="grid grid-cols-4 gap-4 mb-10">
             <div className="sp-stat-card">
               <div className="flex justify-center mb-2"><Flame size={18} style={{ color: 'var(--green-primary)' }} /></div>
               <p className="sp-stat-value">{summary.currentStreak ?? 0}</p>
@@ -96,6 +96,11 @@ export default function Dashboard() {
               <p className="sp-stat-value">{courses.filter((c) => !c.archived).length}</p>
               <p className="sp-stat-label">Active courses</p>
             </div>
+            <Link to="/weak-topics" className="sp-stat-card" style={{ textDecoration: 'none' }}>
+              <div className="flex justify-center mb-2"><TrendingDown size={18} style={{ color: '#DC2626' }} /></div>
+              <p className="sp-stat-value" style={{ color: '#DC2626' }}>Review</p>
+              <p className="sp-stat-label">Weak topics</p>
+            </Link>
           </div>
         )}
 

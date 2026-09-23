@@ -17,35 +17,36 @@ import { getMe } from './api/auth.api';
 import { useAuthStore } from './store/authStore';
 import StudyReminderSkeleton from './components/StudyReminderSkeleton';
 import ReviewQueue from './pages/ReviewQueue';
+import WeakTopics from './pages/WeakTopics';
 export default function App() {
   const [checking, setChecking] = useState(true);
   const login = useAuthStore((s) => s.login);
 
-useEffect(() => {
-  (async () => {
-    const storedRefreshToken = useAuthStore.getState().refreshToken;
-    if (!storedRefreshToken) {
-      setChecking(false);
-      return;
-    }
-    try {
-      const { data } = await api.post('/auth/refresh', { refreshToken: storedRefreshToken });
-      useAuthStore.getState().setAccessToken(data.accessToken);
-      const me = await getMe();
-      login(data.accessToken, me.data.user, data.refreshToken || storedRefreshToken);
-    } catch {
-      useAuthStore.getState().logout();
-    } finally {
-      setChecking(false);
-    }
-  })();
-}, []);
+  useEffect(() => {
+    (async () => {
+      const storedRefreshToken = useAuthStore.getState().refreshToken;
+      if (!storedRefreshToken) {
+        setChecking(false);
+        return;
+      }
+      try {
+        const { data } = await api.post('/auth/refresh', { refreshToken: storedRefreshToken });
+        useAuthStore.getState().setAccessToken(data.accessToken);
+        const me = await getMe();
+        login(data.accessToken, me.data.user, data.refreshToken || storedRefreshToken);
+      } catch {
+        useAuthStore.getState().logout();
+      } finally {
+        setChecking(false);
+      }
+    })();
+  }, []);
 
-  if (checking) return <div className="min-h-screen flex items-center justify-center"><StudyReminderSkeleton/></div>;
+  if (checking) return <div className="min-h-screen flex items-center justify-center"><StudyReminderSkeleton /></div>;
 
   return (
     <Routes>
-      <Route path="/" element={<Home/>} />
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
@@ -58,6 +59,7 @@ useEffect(() => {
         <Route path="/courses/:id/days/:dayNumber/quiz" element={<Quiz />} />
         <Route path="/courses/:id/notes" element={<Notes />} />
         <Route path="/review" element={<ReviewQueue />} />
+        <Route path="/weak-topics" element={<WeakTopics />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
