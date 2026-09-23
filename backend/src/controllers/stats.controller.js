@@ -1,4 +1,6 @@
 const { getUserProgressSummary, getCourseProgress, getWeeklyGoalProgress } = require('../services/stats.service');
+const { getWeakTopics } = require('../services/weakTopics.service');
+
 
 exports.getSummary = async (req, res, next) => {
   try {
@@ -23,6 +25,16 @@ exports.getWeeklyGoal = async (req, res, next) => {
   try {
     const progress = await getWeeklyGoalProgress(req.userId);
     res.json(progress);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+exports.getWeakTopics = async (req, res, next) => {
+  try {
+    const result = await getWeakTopics(req.userId);
+    res.json(result);
   } catch (err) {
     next(err);
   }

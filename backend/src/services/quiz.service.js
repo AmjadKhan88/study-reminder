@@ -28,7 +28,13 @@ async function submitQuizAttempt(courseId, userId, dayNumber, answers) {
 
   let correct = 0;
   quiz.questions.forEach((q, i) => {
-    if (answers[i] === q.correctIndex) correct++;
+    const isCorrect = answers[i] === q.correctIndex;
+    if (isCorrect) {
+      correct++;
+      q.timesCorrect += 1;
+    } else {
+      q.timesWrong += 1;
+    }
   });
   const score = Math.round((correct / quiz.questions.length) * 100);
 

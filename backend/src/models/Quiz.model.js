@@ -6,6 +6,8 @@ const questionSchema = new mongoose.Schema(
     options: [String],
     correctIndex: Number,
     explanation: String,
+    timesCorrect: { type: Number, default: 0 },
+    timesWrong: { type: Number, default: 0 },
   },
   { _id: false }
 );
