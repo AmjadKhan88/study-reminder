@@ -2,7 +2,7 @@ const StudyPlan = require('../models/StudyPlan.model');
 const User = require('../models/User.model');
 const { generateStudyPlanForCourse } = require('../services/studyPlan.service');
 const { getOrGenerateDayContent } = require('../services/dayContent.service');
-const { registerDailyActivity } = require('../utils/streak');
+const { registerDailyActivity, ensureWeeklyFreezeGrant } = require('../utils/streak');
 
 exports.generatePlan = async (req, res, next) => {
   try {
@@ -42,17 +42,21 @@ exports.markDayComplete = async (req, res, next) => {
     const day = plan.days.find((d) => d.dayNumber === Number(req.params.dayNumber));
     if (!day) return res.status(404).json({ message: 'Day not found' });
 
+    let freezeUsed = false;
+
     if (day.status !== 'completed') {
       day.status = 'completed';
       day.completedAt = new Date();
       await plan.save();
 
       const user = await User.findById(req.userId);
+      ensureWeeklyFreezeGrant(user);
       registerDailyActivity(user);
+      freezeUsed = !!user.freezeUsedLast;
       await user.save();
     }
 
-    res.json({ day });
+    res.json({ day, freezeUsed });
   } catch (err) {
     next(err);
   }

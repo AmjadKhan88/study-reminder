@@ -58,14 +58,15 @@ async function getUserProgressSummary(userId) {
     }
   }
 
-  return {
-    currentStreak: user.currentStreak || 0,
-    longestStreak: user.longestStreak || 0,
-    overallCompletionPercentage: overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0,
-    activeCourseCount: courses.filter((c) => c.status === 'active').length,
-    todayTask,
-    courses: courseSummaries,
-  };
+return {
+  currentStreak: user.currentStreak || 0,
+  longestStreak: user.longestStreak || 0,
+  streakFreezesAvailable: user.streakFreezesAvailable ?? 1,
+  overallCompletionPercentage: overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0,
+  activeCourseCount: courses.filter((c) => c.status === 'active').length,
+  todayTask,
+  courses: courseSummaries,
+};
 }
 
 // Monday 00:00:00 through the following Monday 00:00:00 (exclusive), so a

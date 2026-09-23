@@ -28,6 +28,8 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpires: { type: Date, default: null, select: false },
     refreshTokenHash: { type: String, select: false },
     isActive: { type: Boolean, default: true },
+    streakFreezesAvailable: { type: Number, default: 1 },
+    lastFreezeGrantWeek: { type: String, default: null },
   },
   { timestamps: true }
 );
