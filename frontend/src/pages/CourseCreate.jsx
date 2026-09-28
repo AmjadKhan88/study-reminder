@@ -5,6 +5,7 @@ import { Upload, ArrowLeft } from 'lucide-react';
 import { createCourse } from '../api/courses.api';
 import { generatePlan } from '../api/plan.api';
 import Navbar from '../components/Navbar';
+import SmoothLoader from '../components/SmoothLoader';
 
 const PROVIDERS = [
   { value: 'gemini', label: 'Gemini' },
@@ -56,6 +57,7 @@ export default function CourseCreate() {
 
   return (
     <div className="sp-page-bg">
+
       <Navbar />
       <div className="max-w-2xl mx-auto px-6 py-10">
         <button
@@ -156,6 +158,11 @@ export default function CourseCreate() {
           </button>
         </form>
       </div>
+      {
+        loading && <div className='fixed inset-0 bg-black/5 h-screen w-full flex justify-center items-center'>
+          <SmoothLoader showLabel={true} label='Creating' />
+        </div>
+      }
     </div>
   );
 }

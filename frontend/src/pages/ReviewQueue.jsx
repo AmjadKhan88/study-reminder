@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import { getDueFlashcards, reviewFlashcard } from '../api/flashcards.api';
 import Navbar from '../components/Navbar';
-import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
+import SmoothLoader from '../components/SmoothLoader';
 
 const RATINGS = [
   { key: 'again', label: 'Again', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA' },
@@ -44,9 +44,7 @@ export default function ReviewQueue() {
     }
   };
 
-  if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
-  }
+
 
   if (cards.length === 0 || index >= cards.length) {
     return (
@@ -77,38 +75,45 @@ export default function ReviewQueue() {
           <ArrowLeft size={15} /> Back to dashboard
         </button>
 
-        <p className="text-center text-sm mb-1" style={{ color: 'var(--text-tertiary)' }}>
-          {index + 1} / {cards.length} due
-        </p>
-        <p className="text-center text-xs mb-4" style={{ color: 'var(--green-primary)' }}>
-          {card.courseTitle} · Day {card.dayNumber}
-        </p>
+        {
+          loading ?
+            <SmoothLoader showLabel={true} label='Review Queue...' classes='m-5' />
+            :
+            <>
+              <p className="text-center text-sm mb-1" style={{ color: 'var(--text-tertiary)' }}>
+                {index + 1} / {cards.length} due
+              </p>
+              <p className="text-center text-xs mb-4" style={{ color: 'var(--green-primary)' }}>
+                {card.courseTitle} · Day {card.dayNumber}
+              </p>
 
-        <div
-          onClick={() => setFlipped(!flipped)}
-          className="sp-card flex items-center justify-center text-center cursor-pointer select-none p-8"
-          style={{ minHeight: 220 }}
-        >
-          <p className="text-lg font-medium">{flipped ? card.back : card.front}</p>
-        </div>
-        <p className="text-center text-xs mt-2 mb-6" style={{ color: 'var(--text-tertiary)' }}>
-          {flipped ? 'How well did you know this?' : 'Tap card to reveal the answer'}
-        </p>
-
-        {flipped && (
-          <div className="grid grid-cols-4 gap-2">
-            {RATINGS.map((r) => (
-              <button
-                key={r.key}
-                onClick={() => handleRate(r.key)}
-                className="text-sm font-semibold py-2.5 rounded-md border transition-transform hover:-translate-y-0.5"
-                style={{ color: r.color, background: r.bg, borderColor: r.border }}
+              <div
+                onClick={() => setFlipped(!flipped)}
+                className="sp-card flex items-center justify-center text-center cursor-pointer select-none p-8"
+                style={{ minHeight: 220 }}
               >
-                {r.label}
-              </button>
-            ))}
-          </div>
-        )}
+                <p className="text-lg font-medium">{flipped ? card.back : card.front}</p>
+              </div>
+              <p className="text-center text-xs mt-2 mb-6" style={{ color: 'var(--text-tertiary)' }}>
+                {flipped ? 'How well did you know this?' : 'Tap card to reveal the answer'}
+              </p>
+
+              {flipped && (
+                <div className="grid grid-cols-4 gap-2">
+                  {RATINGS.map((r) => (
+                    <button
+                      key={r.key}
+                      onClick={() => handleRate(r.key)}
+                      className="text-sm font-semibold py-2.5 rounded-md border transition-transform hover:-translate-y-0.5"
+                      style={{ color: r.color, background: r.bg, borderColor: r.border }}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+        }
       </div>
     </div>
   );

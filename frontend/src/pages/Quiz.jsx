@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import { getQuiz, submitQuiz } from '../api/quiz.api';
 import Navbar from '../components/Navbar';
-import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
+import SmoothLoader from '../components/SmoothLoader';
 
 export default function Quiz() {
   const { id, dayNumber } = useParams();
@@ -53,9 +53,7 @@ export default function Quiz() {
     }
   };
 
-  if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
-  }
+
   if (!quiz) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Quiz not found</p></div>;
   }
@@ -79,46 +77,53 @@ export default function Quiz() {
           </div>
         )}
 
-        <div className="flex flex-col gap-4">
-          {quiz.questions.map((q, qi) => (
-            <div key={qi} className="sp-card p-5">
-              <p className="font-medium mb-3">{qi + 1}. {q.question}</p>
-              <div className="flex flex-col gap-2">
-                {q.options.map((opt, oi) => {
-                  const isSelected = answers[qi] === oi;
-                  const isCorrect = result && oi === q.correctIndex;
-                  const isWrongPick = result && isSelected && oi !== q.correctIndex;
+        {
+          loading ?
+            <SmoothLoader showLabel={true} label='Quiz...' classes='m-5' />
+            :
+            <>
+              <div className="flex flex-col gap-4">
+                {quiz.questions.map((q, qi) => (
+                  <div key={qi} className="sp-card p-5">
+                    <p className="font-medium mb-3">{qi + 1}. {q.question}</p>
+                    <div className="flex flex-col gap-2">
+                      {q.options.map((opt, oi) => {
+                        const isSelected = answers[qi] === oi;
+                        const isCorrect = result && oi === q.correctIndex;
+                        const isWrongPick = result && isSelected && oi !== q.correctIndex;
 
-                  let style = { borderColor: 'var(--border)', background: '#fff' };
-                  if (isSelected && !result) style = { borderColor: 'var(--green-primary)', background: 'var(--green-tint)' };
-                  if (isCorrect) style = { borderColor: 'var(--green-primary)', background: 'var(--green-tint)' };
-                  if (isWrongPick) style = { borderColor: '#FCA5A5', background: '#FEF2F2' };
+                        let style = { borderColor: 'var(--border)', background: '#fff' };
+                        if (isSelected && !result) style = { borderColor: 'var(--green-primary)', background: 'var(--green-tint)' };
+                        if (isCorrect) style = { borderColor: 'var(--green-primary)', background: 'var(--green-tint)' };
+                        if (isWrongPick) style = { borderColor: '#FCA5A5', background: '#FEF2F2' };
 
-                  return (
-                    <button
-                      key={oi}
-                      type="button"
-                      onClick={() => selectAnswer(qi, oi)}
-                      className="w-full text-left rounded-lg px-3 py-2.5 text-sm border transition-colors"
-                      style={style}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
+                        return (
+                          <button
+                            key={oi}
+                            type="button"
+                            onClick={() => selectAnswer(qi, oi)}
+                            className="w-full text-left rounded-lg px-3 py-2.5 text-sm border transition-colors"
+                            style={style}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {result && q.explanation && (
+                      <p className="text-xs mt-3 italic" style={{ color: 'var(--text-tertiary)' }}>{q.explanation}</p>
+                    )}
+                  </div>
+                ))}
               </div>
-              {result && q.explanation && (
-                <p className="text-xs mt-3 italic" style={{ color: 'var(--text-tertiary)' }}>{q.explanation}</p>
-              )}
-            </div>
-          ))}
-        </div>
 
-        {!result && (
-          <button onClick={handleSubmit} disabled={submitting} className="sp-btn sp-btn-primary sp-btn-lg w-full mt-6">
-            {submitting ? 'Submitting...' : 'Submit quiz'}
-          </button>
-        )}
+              {!result && (
+                <button onClick={handleSubmit} disabled={submitting} className="sp-btn sp-btn-primary sp-btn-lg w-full mt-6">
+                  {submitting ? 'Submitting...' : 'Submit quiz'}
+                </button>
+              )}
+            </>
+        }
       </div>
     </div>
   );

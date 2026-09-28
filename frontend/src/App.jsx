@@ -18,6 +18,7 @@ import { useAuthStore } from './store/authStore';
 import StudyReminderSkeleton from './components/StudyReminderSkeleton';
 import ReviewQueue from './pages/ReviewQueue';
 import WeakTopics from './pages/WeakTopics';
+import SmoothLoader from './components/SmoothLoader'
 export default function App() {
   const [checking, setChecking] = useState(true);
   const login = useAuthStore((s) => s.login);
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/courses/:id/notes" element={<Notes />} />
         <Route path="/review" element={<ReviewQueue />} />
         <Route path="/weak-topics" element={<WeakTopics />} />
+        <Route path="/smooth-loader" element={<SmoothLoader showLabel={true} label='Generating' />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

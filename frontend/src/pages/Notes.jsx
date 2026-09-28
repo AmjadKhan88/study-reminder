@@ -5,7 +5,7 @@ import { ArrowLeft, Upload, Trash2, FileText, Send } from 'lucide-react';
 import { uploadNote, getNotes, deleteNote, askQuestion } from '../api/notes.api';
 import AIContentRenderer from '../components/AIContentRenderer';
 import Navbar from '../components/Navbar';
-import StudyReminderSkeleton from '../components/StudyReminderSkeleton';
+import SmoothLoader from '../components/SmoothLoader';
 
 export default function Notes() {
   const { id } = useParams();
@@ -84,9 +84,7 @@ export default function Notes() {
     return { background: 'var(--bg-subtle)', color: 'var(--text-tertiary)', border: '1px solid var(--border)' };
   };
 
-  if (loading) {
-    return <div className="sp-page-bg flex items-center justify-center"><StudyReminderSkeleton/></div>;
-  }
+
 
   return (
     <div className="sp-page-bg">
@@ -105,39 +103,42 @@ export default function Notes() {
           <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>PDF, DOCX or TXT (max 20MB)</p>
         </label>
 
-        <div className="flex flex-col gap-2.5 mb-8">
-          {notes.length === 0 && (
-            <p className="text-sm text-center py-6" style={{ color: 'var(--text-tertiary)' }}>No notes uploaded yet.</p>
-          )}
-          {notes.map((note) => (
-            <div key={note._id} className="sp-card p-4">
-              <div className="flex justify-between items-center gap-3">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <FileText size={16} className="mt-0.5 shrink-0" style={{ color: 'var(--green-primary)' }} />
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{note.title}</p>
-                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                      {note.originalFilename} · {(note.fileSizeBytes / 1024).toFixed(0)} KB
-                    </p>
+        {loading ?
+          <SmoothLoader showLabel={true} label='Notes...' classes='mb-5' />
+          :
+          <div className="flex flex-col gap-2.5 mb-8">
+            {notes.length === 0 && (
+              <p className="text-sm text-center py-6" style={{ color: 'var(--text-tertiary)' }}>No notes uploaded yet.</p>
+            )}
+            {notes.map((note) => (
+              <div key={note._id} className="sp-card p-4">
+                <div className="flex justify-between items-center gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <FileText size={16} className="mt-0.5 shrink-0" style={{ color: 'var(--green-primary)' }} />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{note.title}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                        {note.originalFilename} · {(note.fileSizeBytes / 1024).toFixed(0)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="sp-chip" style={statusStyle(note.status)}>{note.status}</span>
+                    <button onClick={() => handleDelete(note._id)} className="sp-icon-btn danger">
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="sp-chip" style={statusStyle(note.status)}>{note.status}</span>
-                  <button onClick={() => handleDelete(note._id)} className="sp-icon-btn danger">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
+                {note.status === 'failed' && note.errorMessage && (
+                  <p className="text-xs mt-2" style={{ color: '#DC2626' }}>{note.errorMessage}</p>
+                )}
+                {note.status === 'ready' && note.summary && (
+                  <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>{note.summary}</p>
+                )}
               </div>
-              {note.status === 'failed' && note.errorMessage && (
-                <p className="text-xs mt-2" style={{ color: '#DC2626' }}>{note.errorMessage}</p>
-              )}
-              {note.status === 'ready' && note.summary && (
-                <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>{note.summary}</p>
-              )}
-            </div>
-          ))}
-        </div>
-
+            ))}
+          </div>
+        }
         <div className="sp-card p-5">
           <h2 className="text-sm font-semibold mb-3">Ask AI about your notes</h2>
           <form onSubmit={handleAsk} className="flex gap-2">
