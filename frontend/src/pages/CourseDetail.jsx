@@ -58,7 +58,7 @@ export default function CourseDetail() {
   };
 
 
-  if (!course) {
+  if (!loading && !course) {
     return (
       <div className="sp-page-bg flex items-center justify-center">
         <p style={{ color: 'var(--text-muted)' }}>Course not found</p>

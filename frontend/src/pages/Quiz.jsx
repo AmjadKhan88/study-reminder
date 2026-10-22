@@ -54,7 +54,7 @@ export default function Quiz() {
   };
 
 
-  if (!quiz) {
+  if (!loading && !quiz) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Quiz not found</p></div>;
   }
 

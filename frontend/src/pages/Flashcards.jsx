@@ -50,7 +50,7 @@ export default function Flashcards() {
   };
 
 
-  if (cards.length === 0) {
+  if (!loading && cards.length === 0) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>No flashcards for this day.</p></div>;
   }
 

@@ -81,7 +81,7 @@ export default function DayContent() {
   };
 
 
-  if (!day) {
+  if (!loading && !day) {
     return <div className="sp-page-bg flex items-center justify-center"><p style={{ color: 'var(--text-muted)' }}>Day not found</p></div>;
   }
 
