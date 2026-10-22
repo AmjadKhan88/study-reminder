@@ -89,9 +89,9 @@ exports.deleteCourse = async (req, res, next) => {
     await LectureNote.deleteMany({ course: course._id, user: req.userId });
 
     try {
-      await deleteByCourse(course._id);
+      await deleteByCourse(course._id, req.userId);
     } catch (err) {
-      console.error(`Failed to delete Qdrant vectors for course ${course._id}:`, err.message);
+      console.error(`Failed to delete Pinecone vectors for course ${course._id}:`, err.message);
     }
 
     await Course.findByIdAndDelete(course._id);

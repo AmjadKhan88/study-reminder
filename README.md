@@ -4,7 +4,7 @@ StudyPilot is a multi-platform learning assistant built to help students plan, s
 
 This monorepo contains:
 
-- Backend API: Node.js + Express + MongoDB + Qdrant
+- Backend API: Node.js + Express + MongoDB + Pinecone
 - Web frontend: React + Vite
 - Mobile app: React Native + Expo
 
@@ -39,7 +39,7 @@ StudyPilot turns a course outline or lecture material into a structured study pl
                  ┌──────────▼───────────┐
                  │ AI + Vector Services  │
                  │ Gemini / OpenAI /     │
-                 │ Groq + Qdrant         │
+                 │ Groq + Pinecone         │
                  └──────────────────────┘
 ```
 
@@ -50,7 +50,7 @@ StudyPilot turns a course outline or lecture material into a structured study pl
 - Node.js
 - Express
 - MongoDB with Mongoose
-- Qdrant vector database
+- Pinecone vector database
 - JWT authentication
 - Helmet, CORS, rate limiting
 - Node cron for reminder jobs
@@ -136,7 +136,7 @@ Before running the project, install:
 - Node.js 18+ or 20+
 - npm or yarn
 - MongoDB instance
-- Qdrant instance
+- Pinecone account and serverless index
 - AI provider API keys (Gemini, OpenAI, or Groq)
 - Optional: Expo CLI for mobile app development
 
@@ -158,15 +158,17 @@ GEMINI_API_KEY=your_gemini_key
 OPENAI_API_KEY=your_openai_key
 GROQ_API_KEY=your_groq_key
 
-QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY=
-QDRANT_COLLECTION=studypilot_notes
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_INDEX=studypilot-notes
 GEMINI_EMBEDDING_MODEL=text-embedding-004
+GEMINI_EMBEDDING_DIMENSIONS=768
 
 EMAIL_USER=your_email@example.com
 EMAIL_APP_PASSWORD=your_app_password
 EMAIL_FROM_NAME=StudyPilot
 ```
+
+For Render, add `PINECONE_API_KEY` and `PINECONE_INDEX` under the backend web service's **Environment** settings. Create the Pinecone index before deploying; use dimension `768` and metric `cosine` to match the default Gemini embedding settings above. If you change the embedding model or its dimensions, configure the Pinecone index and `GEMINI_EMBEDDING_DIMENSIONS` to match.
 
 ### Frontend
 
@@ -261,7 +263,7 @@ npm run web
 ## Production Notes
 
 - Use environment-specific secrets and never commit API keys to source control.
-- Run MongoDB and Qdrant in a managed or production-grade environment.
+- Run MongoDB and Pinecone in a managed or production-grade environment.
 - Configure CORS properly for deployed frontends and mobile clients.
 - Use HTTPS in production and secure JWT secret management.
 - Add monitoring and logging around AI and reminder jobs.

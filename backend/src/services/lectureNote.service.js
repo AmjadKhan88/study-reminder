@@ -30,7 +30,7 @@ async function processLectureNote(noteId, fileBuffer) {
     const vectors = await embedBatch(chunks);
     console.log(`[note ${noteId}] embedding vector length: ${vectors[0]?.length}`); // should print 768
 
-    console.log(`[note ${noteId}] upserting to Qdrant...`);
+    console.log(`[note ${noteId}] upserting to Pinecone...`);
     await upsertChunks({
       userId: note.user,
       courseId: note.course,
@@ -59,8 +59,7 @@ async function processLectureNote(noteId, fileBuffer) {
     await note.save();
     console.log(`[note ${noteId}] done — status: ready`);
   } catch (err) {
-    // Qdrant client errors carry the real reason in err.data — err.message alone
-    // is often just the generic HTTP status text ("Bad Request").
+    // Keep provider response details when available to aid diagnosis.
     const detail = err?.data ? JSON.stringify(err.data) : err?.response?.data ? JSON.stringify(err.response.data) : null;
     console.error(`[note ${noteId}] processing failed:`, err.message, detail ? `| detail: ${detail}` : '');
 

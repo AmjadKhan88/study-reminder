@@ -7,7 +7,7 @@ const LectureNote = require('../models/LectureNote.model');
 const { deleteByUser } = require('./vectorStore.service');
 
 // Deletes everything belonging to a user across every collection, plus their
-// vectors in Qdrant. Order matters here: delete dependents (plans, notes,
+// vectors in Pinecone. Order matters here: delete dependents (plans, notes,
 // etc.) before the user itself, so nothing is left orphaned if a step fails
 // partway through.
 async function deleteAccountCompletely(userId) {
@@ -20,7 +20,7 @@ async function deleteAccountCompletely(userId) {
   try {
     await deleteByUser(userId);
   } catch (err) {
-    console.error(`Failed to delete Qdrant vectors for user ${userId}:`, err.message);
+    console.error(`Failed to delete Pinecone vectors for user ${userId}:`, err.message);
     // Don't block account deletion on this — log it for manual cleanup if needed.
   }
 

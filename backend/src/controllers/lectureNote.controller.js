@@ -57,7 +57,7 @@ exports.deleteNote = async (req, res, next) => {
   try {
     const note = await LectureNote.findOneAndDelete({ _id: req.params.noteId, course: req.params.id, user: req.userId });
     if (!note) return res.status(404).json({ message: 'Note not found' });
-    await deleteByNote(note._id);
+    await deleteByNote(note._id, req.userId);
     res.json({ message: 'Note deleted' });
   } catch (err) {
     next(err);

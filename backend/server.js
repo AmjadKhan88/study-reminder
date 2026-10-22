@@ -1,12 +1,12 @@
 require("dotenv").config();
 const app = require("./src/app");
 const connectDB = require("./src/config/db");
-const { ensureCollection } = require("./src/config/qdrant");
+const { ensureIndex } = require("./src/config/pinecone");
 
 const PORT = process.env.PORT || 5000;
 
 connectDB()
-  .then(() => ensureCollection())
+  .then(() => ensureIndex())
   .then(() => {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })

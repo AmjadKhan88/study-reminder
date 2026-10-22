@@ -26,7 +26,7 @@ async function getOrGenerateDayContent(courseId, userId, dayNumber, forceRegener
     const matches = await searchSimilar({ userId, courseId, queryVector, limit: 4 });
     if (matches.length > 0) referenceMaterial = matches.map((m) => m.text).join('\n\n---\n\n');
   } catch (err) {
-    console.warn('Vector search skipped (no notes yet, or Qdrant unavailable):', err.message);
+    console.warn('Vector search skipped (no notes yet, or Pinecone unavailable):', err.message);
   }
 
   const provider = getAIProvider(course.aiProvider);
