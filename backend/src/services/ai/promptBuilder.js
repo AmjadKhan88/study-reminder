@@ -17,14 +17,20 @@ Respond with ONLY a valid JSON array, no markdown formatting, no code fences, no
 The array must have exactly ${totalWeeks} items, weekNumber from 1 to ${totalWeeks}.`;
 }
 
-function buildDayContentPrompt({ courseTitle, topic, subtopics, dayNumber, referenceMaterial }) {
+function buildDayContentPrompt({
+  courseTitle,
+  topic,
+  subtopics,
+  dayNumber,
+  referenceMaterial,
+}) {
   return `You are a friendly, expert tutor writing today's study material for a student, in the style of a well-formatted chat answer (like ChatGPT) — NOT a dense textbook paragraph.
 
 Course: ${courseTitle}
 Day ${dayNumber} topic: ${topic}
-Focus subtopic(s): ${subtopics.join(', ')}
+Focus subtopic(s): ${subtopics.join(", ")}
 
-${referenceMaterial ? `The student has uploaded their own lecture notes. Where these excerpts are relevant to today's topic, ground your explanation in them (paraphrase, don't copy verbatim) and prefer them over generic knowledge:\n"""\n${referenceMaterial}\n"""\n` : ''}
+${referenceMaterial ? `The student has uploaded their own lecture notes. Where these excerpts are relevant to today's topic, ground your explanation in them (paraphrase, don't copy verbatim) and prefer them over generic knowledge:\n"""\n${referenceMaterial}\n"""\n` : ""}
 Write the "content" field as a Markdown-formatted string. Follow these rules strictly:
 - Start with a short 1-2 sentence friendly intro (no heading for this part).
 - Break the material into 2-4 sections, each with a "## " heading that includes one relevant emoji (e.g. "## 🔑 Key Idea", "## 🧩 How It Works", "## 💡 Example", "## ⚠️ Common Mistake").
@@ -35,6 +41,7 @@ Write the "content" field as a Markdown-formatted string. Follow these rules str
 - Leave a blank line between every paragraph, heading, and list item block.
 - Total length: 350-600 words.
 - Do NOT include a top-level title/H1 (the app already shows the topic name separately).
+- Use sample and easy english words, don't use advance english words when the subject not related to english subject. easy explination. 
 
 Also produce:
 - keyConcepts: 3-5 short bullet-style strings
@@ -52,7 +59,7 @@ function buildFlashcardsPrompt({ topic, subtopics, content }) {
   return `Create exactly 10 flashcards for active-recall practice based on this study material.
 
 Topic: ${topic}
-Subtopics: ${subtopics.join(', ')}
+Subtopics: ${subtopics.join(", ")}
 Study content:
 """
 ${content}
@@ -66,7 +73,7 @@ function buildQuizPrompt({ topic, subtopics, content }) {
   return `Create a 5-question multiple choice quiz testing understanding of this study material.
 
 Topic: ${topic}
-Subtopics: ${subtopics.join(', ')}
+Subtopics: ${subtopics.join(", ")}
 Study content:
 """
 ${content}
@@ -94,7 +101,9 @@ Respond with ONLY valid JSON, no code fences, in this exact shape:
 }
 
 function buildRagAnswerPrompt({ question, contextChunks }) {
-  const context = contextChunks.map((c, i) => `[Excerpt ${i + 1}]\n${c}`).join('\n\n');
+  const context = contextChunks
+    .map((c, i) => `[Excerpt ${i + 1}]\n${c}`)
+    .join("\n\n");
   return `You are a helpful study assistant answering a student's question using ONLY the excerpts from their own uploaded lecture notes below. If the excerpts don't contain enough information to answer confidently, say so honestly instead of guessing.
 
 Excerpts from the student's notes:
