@@ -7,19 +7,28 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://studypilot-api-7ka1.onrender.com/api"
+      },
       "android": {
         "buildType": "apk"
       }
     },
-   "preview": {
-  "distribution": "internal",
-  "autoIncrement": true,
-  "android": {
-    "buildType": "apk"
-  }
-},
+    "preview": {
+      "distribution": "internal",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://studypilot-api-7ka1.onrender.com/api"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "production": {
       "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://studypilot-api-7ka1.onrender.com/api"
+      },
       "android": {
         "buildType": "app-bundle"
       }
