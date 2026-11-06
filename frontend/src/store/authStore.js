@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-const REFRESH_KEY = 'sp_refresh_token';
+const REFRESH_KEY = "sp_refresh_token";
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -8,8 +8,13 @@ export const useAuthStore = create((set) => ({
   refreshToken: localStorage.getItem(REFRESH_KEY),
   isAuthenticated: false,
 
-  setAccessToken: (token) => set({ accessToken: token, isAuthenticated: !!token }),
+  setAccessToken: (token) =>
+    set({ accessToken: token, isAuthenticated: !!token }),
   setUser: (user) => set({ user }),
+
+  showKeyModal: false,
+  openKeyModal: () => set({ showKeyModal: true }),
+  closeKeyModal: () => set({ showKeyModal: false }),
 
   login: (accessToken, user, refreshToken) => {
     if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
@@ -18,6 +23,11 @@ export const useAuthStore = create((set) => ({
 
   logout: () => {
     localStorage.removeItem(REFRESH_KEY);
-    set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false });
+    set({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+      isAuthenticated: false,
+    });
   },
 }));

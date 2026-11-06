@@ -4,13 +4,14 @@ import toast from 'react-hot-toast';
 import { Upload, ArrowLeft } from 'lucide-react';
 import { createCourse } from '../api/courses.api';
 import { generatePlan } from '../api/plan.api';
+import { useAuthStore } from '../store/authStore';
 import Navbar from '../components/Navbar';
 import SmoothLoader from '../components/SmoothLoader';
 
-const PROVIDERS = [
-  { value: 'gemini', label: 'Gemini' },
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'groq', label: 'Groq' },
+const DIFFICULTIES = [
+  { value: 'easy', label: 'Easy', desc: 'Start from zero. Simple words, small steps, many examples.' },
+  { value: 'medium', label: 'Medium', desc: 'You know the basics. Balanced lessons and exam-style practice.' },
+  { value: 'difficult', label: 'Difficult', desc: 'Strong basics. Deeper theory and harder problems.' },
 ];
 
 export default function CourseCreate() {
@@ -19,10 +20,12 @@ export default function CourseCreate() {
     outline: '',
     durationValue: 4,
     durationUnit: 'weeks',
-    aiProvider: 'gemini',
+    difficulty: 'medium',
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const openKeyModal = useAuthStore((s) => s.openKeyModal);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,6 +34,11 @@ export default function CourseCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user?.hasGeminiKey) {
+      toast.error('Add your Gemini API key first');
+      openKeyModal();
+      return;
+    }
     if (form.outline.trim().length < 20) {
       toast.error('Outline must be at least 20 characters');
       return;
@@ -57,14 +65,9 @@ export default function CourseCreate() {
 
   return (
     <div className="sp-page-bg">
-
       <Navbar />
       <div className="max-w-2xl mx-auto px-6 py-10">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-1.5 text-sm mb-6"
-          style={{ color: 'var(--text-muted)' }}
-        >
+        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1.5 text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
           <ArrowLeft size={15} /> Back to dashboard
         </button>
 
@@ -79,14 +82,7 @@ export default function CourseCreate() {
         <form onSubmit={handleSubmit} className="sp-card p-7 flex flex-col gap-5">
           <div>
             <label className="sp-label">Title</label>
-            <input
-              name="title"
-              className="sp-input"
-              placeholder="e.g. Organic Chemistry Finals"
-              value={form.title}
-              onChange={handleChange}
-              required
-            />
+            <input name="title" className="sp-input" placeholder="e.g. Physics Class 10 — Motion" value={form.title} onChange={handleChange} required />
           </div>
 
           <div>
@@ -106,25 +102,11 @@ export default function CourseCreate() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="sp-label">Duration</label>
-              <input
-                type="number"
-                name="durationValue"
-                min={1}
-                max={52}
-                className="sp-input"
-                value={form.durationValue}
-                onChange={handleChange}
-                required
-              />
+              <input type="number" name="durationValue" min={1} max={52} className="sp-input" value={form.durationValue} onChange={handleChange} required />
             </div>
             <div>
               <label className="sp-label">Unit</label>
-              <select
-                name="durationUnit"
-                className="sp-input"
-                value={form.durationUnit}
-                onChange={handleChange}
-              >
+              <select name="durationUnit" className="sp-input" value={form.durationUnit} onChange={handleChange}>
                 <option value="weeks">Weeks</option>
                 <option value="months">Months</option>
               </select>
@@ -132,24 +114,28 @@ export default function CourseCreate() {
           </div>
 
           <div>
-            <label className="sp-label">AI provider</label>
+            <label className="sp-label">Course level</label>
             <div className="grid grid-cols-3 gap-2">
-              {PROVIDERS.map((p) => (
+              {DIFFICULTIES.map((d) => (
                 <button
-                  key={p.value}
+                  key={d.value}
                   type="button"
-                  onClick={() => setForm({ ...form, aiProvider: p.value })}
-                  className="text-sm font-semibold py-2.5 rounded-md border transition-all"
+                  onClick={() => setForm({ ...form, difficulty: d.value })}
+                  className="text-left p-3 rounded-md border transition-all"
                   style={
-                    form.aiProvider === p.value
+                    form.difficulty === d.value
                       ? { background: 'var(--green-tint)', borderColor: 'var(--green-border)', color: 'var(--green-dark)' }
                       : { background: '#fff', borderColor: 'var(--border)', color: 'var(--text-muted)' }
                   }
                 >
-                  {p.label}
+                  <p className="text-sm font-semibold">{d.label}</p>
+                  <p className="text-xs mt-1">{d.desc}</p>
                 </button>
               ))}
             </div>
+            <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+              Lessons always use simple English. Hard words are explained in (brackets).
+            </p>
           </div>
 
           <button type="submit" disabled={loading} className="sp-btn sp-btn-primary sp-btn-lg w-full mt-2">
@@ -158,11 +144,11 @@ export default function CourseCreate() {
           </button>
         </form>
       </div>
-      {
-        loading && <div className='fixed inset-0 bg-black/5 h-screen w-full flex justify-center items-center'>
-          <SmoothLoader showLabel={true} label='Creating' />
+      {loading && (
+        <div className="fixed inset-0 bg-black/5 h-screen w-full flex justify-center items-center">
+          <SmoothLoader showLabel={true} label="Creating" />
         </div>
-      }
+      )}
     </div>
   );
 }

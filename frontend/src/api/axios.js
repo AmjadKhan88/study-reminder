@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
+import axios from "axios";
+import { useAuthStore } from "../store/authStore";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -16,7 +16,9 @@ let isRefreshing = false;
 let queue = [];
 
 const processQueue = (error, token = null) => {
-  queue.forEach(({ resolve, reject }) => (error ? reject(error) : resolve(token)));
+  queue.forEach(({ resolve, reject }) =>
+    error ? reject(error) : resolve(token),
+  );
   queue = [];
 };
 
@@ -25,7 +27,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/')) {
+    const apiCode = error.response?.data?.apiCode;
+    if (apiCode === "GEMINI_KEY_REQUIRED" || apiCode === "GEMINI_KEY_INVALID") {
+      useAuthStore.getState().openKeyModal();
+    }
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/")
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           queue.push({ resolve, reject });
@@ -42,7 +53,7 @@ api.interceptors.response.use(
         const { data } = await axios.post(
           `${import.meta.env.VITE_API_URL}/auth/refresh`,
           { refreshToken: useAuthStore.getState().refreshToken },
-          { withCredentials: true }
+          { withCredentials: true },
         );
         useAuthStore.getState().setAccessToken(data.accessToken);
         processQueue(null, data.accessToken);
@@ -51,7 +62,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         useAuthStore.getState().logout();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -59,7 +70,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
