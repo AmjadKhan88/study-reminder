@@ -11,6 +11,7 @@ const {
 } = require("./ai/promptBuilder");
 const { parseJsonObjectResponse } = require("./ai/parseUtils");
 const { getUserGeminiKey } = require("./aiKey.service");
+const { getUserIndex } = require("./pinecone.service");
 
 const MAX_CHARS_FOR_SUMMARY = 30000;
 
@@ -88,6 +89,7 @@ async function processLectureNote(noteId, fileBuffer) {
 async function answerQuestion({ courseId, userId, question, noteId }) {
   const course = await Course.findOne({ _id: courseId, user: userId });
   if (!course) throw new Error("Course not found");
+  await getUserIndex(userId);
 
   const apiKey = await getUserGeminiKey(userId);
   const queryVector = await embedText(question, apiKey);

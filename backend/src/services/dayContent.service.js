@@ -6,6 +6,7 @@ const { parseDayContentResponse } = require("./ai/parseUtils");
 const { embedText } = require("./embedding.service");
 const { searchSimilar } = require("./vectorStore.service");
 const { getUserGeminiKey } = require("./aiKey.service");
+const { getUserIndex } = require("./pinecone.service");
 
 async function getOrGenerateDayContent(
   courseId,
@@ -28,23 +29,23 @@ async function getOrGenerateDayContent(
 
   let referenceMaterial = null;
   try {
-    const queryVector = await embedText(
-      `${day.topic} ${day.subtopics.join(" ")}`,
-      apiKey,
-    );
-    const matches = await searchSimilar({
-      userId,
-      courseId,
-      queryVector,
-      limit: 4,
-    });
-    if (matches.length > 0)
-      referenceMaterial = matches.map((m) => m.text).join("\n\n---\n\n");
+    const hasIndex = await getUserIndex(userId, { required: false });
+    if (hasIndex) {
+      const queryVector = await embedText(
+        `${day.topic} ${day.subtopics.join(" ")}`,
+        apiKey,
+      );
+      const matches = await searchSimilar({
+        userId,
+        courseId,
+        queryVector,
+        limit: 4,
+      });
+      if (matches.length > 0)
+        referenceMaterial = matches.map((m) => m.text).join("\n\n---\n\n");
+    }
   } catch (err) {
-    console.warn(
-      "Vector search skipped (no notes yet, or Pinecone unavailable):",
-      err.message,
-    );
+    console.warn("Vector search skipped:", err.message);
   }
 
   const provider = getAIProvider(course.aiProvider, apiKey);

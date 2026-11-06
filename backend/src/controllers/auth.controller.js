@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User.model");
+const { validateAndPrepareIndex } = require("../services/pinecone.service");
 const {
   signAccessToken,
   signRefreshToken,
@@ -24,6 +25,7 @@ function toPublicUser(user) {
     name: user.name,
     email: user.email,
     hasGeminiKey: !!user.hasGeminiKey,
+    hasPineconeKey: !!user.hasPineconeKey,
     reminderTime: user.reminderTime,
     timezone: user.timezone,
     notificationsEnabled: user.notificationsEnabled,
@@ -293,6 +295,40 @@ exports.removeGeminiKey = async (req, res, next) => {
     const user = await User.findByIdAndUpdate(
       req.userId,
       { geminiApiKeyEncrypted: null, hasGeminiKey: false },
+      { new: true },
+    );
+    res.json({ user: toPublicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.savePineconeKey = async (req, res, next) => {
+  try {
+    const apiKey = String(req.body.apiKey || "").trim();
+    const { valid } = await validateAndPrepareIndex(apiKey);
+    if (!valid) {
+      return res.status(400).json({
+        message:
+          "Pinecone rejected that API key. Please check it and try again.",
+      });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { pineconeApiKeyEncrypted: encrypt(apiKey), hasPineconeKey: true },
+      { new: true },
+    );
+    res.json({ user: toPublicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.removePineconeKey = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { pineconeApiKeyEncrypted: null, hasPineconeKey: false },
       { new: true },
     );
     res.json({ user: toPublicUser(user) });

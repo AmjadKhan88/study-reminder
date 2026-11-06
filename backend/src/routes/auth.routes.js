@@ -132,4 +132,19 @@ router.put(
 );
 router.delete("/gemini-key", requireAuth, ctrl.removeGeminiKey);
 
+router.put(
+  "/pinecone-key",
+  requireAuth,
+  [
+    body("apiKey")
+      .isString()
+      .trim()
+      .isLength({ min: 20, max: 300 })
+      .withMessage("Please paste a valid Pinecone API key"),
+  ],
+  validate,
+  ctrl.savePineconeKey,
+);
+router.delete("/pinecone-key", requireAuth, ctrl.removePineconeKey);
+
 module.exports = router;

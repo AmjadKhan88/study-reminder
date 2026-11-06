@@ -38,6 +38,8 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     geminiApiKeyEncrypted: { type: String, default: null, select: false },
     hasGeminiKey: { type: Boolean, default: false },
+    pineconeApiKeyEncrypted: { type: String, default: null, select: false },
+    hasPineconeKey: { type: Boolean, default: false },
     streakFreezesAvailable: { type: Number, default: 1 },
     lastFreezeGrantWeek: { type: String, default: null },
   },
