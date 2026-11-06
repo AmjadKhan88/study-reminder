@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
-import { tokenStore } from '../api/tokenStore';
-import { REFRESH_TOKEN_KEY } from '../utils/constants';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import { tokenStore } from "../api/tokenStore";
+import { REFRESH_TOKEN_KEY } from "../utils/constants";
 import {
   registerRequest,
   loginRequest,
@@ -9,15 +9,29 @@ import {
   meRequest,
   updateProfileRequest,
   savePushTokenRequest,
+  saveGeminiKeyRequest,
+  removeGeminiKeyRequest,
   AuthUser,
   AuthResponse,
-} from '../api/auth.api';
+} from "../api/auth.api";
 import {
   requestNotificationPermission,
   getExpoPushToken,
   scheduleDailyReminder,
   cancelDailyReminder,
-} from '../services/notifications';
+} from "../services/notifications";
+import { onKeyProblem } from "../utils/keyEvents";
+
+type ProfileUpdates = Partial<
+  Pick<
+    AuthUser,
+    | "reminderTime"
+    | "notificationsEnabled"
+    | "aiProviderPreference"
+    | "weeklyGoalDays"
+    | "weeklyGoalMinutes"
+  >
+>;
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -28,13 +42,16 @@ interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
-  updateNotificationSettings: (updates: Partial<Pick<AuthUser, 'reminderTime' | 'notificationsEnabled' | 'aiProviderPreference' | 'weeklyGoalDays' | 'weeklyGoalMinutes'>>) => Promise<void>;
+  updateNotificationSettings: (updates: ProfileUpdates) => Promise<void>;
+  keyModalOpen: boolean;
+  openKeyModal: () => void;
+  closeKeyModal: () => void;
+  saveGeminiKey: (apiKey: string) => Promise<void>;
+  removeGeminiKey: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Applies the user's saved preference to the device: schedules/cancels the
-// local reminder and (best-effort) registers the push token with the backend.
 async function syncNotificationsForUser(user: AuthUser) {
   if (!user.notificationsEnabled) {
     await cancelDailyReminder();
@@ -46,15 +63,14 @@ async function syncNotificationsForUser(user: AuthUser) {
   await scheduleDailyReminder(user.reminderTime);
 
   const token = await getExpoPushToken();
-  if (token) {
-    savePushTokenRequest(token).catch(() => {}); // non-critical — local reminder already works regardless
-  }
+  if (token) savePushTokenRequest(token).catch(() => {});
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -73,6 +89,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     })();
   }, []);
 
+  // Open the key box automatically when a logged-in user has no key.
+  useEffect(() => {
+    if (user && !user.hasGeminiKey) setKeyModalOpen(true);
+  }, [user?.id, user?.hasGeminiKey]);
+
+  // Open it when any API call says the key is missing or invalid.
+  useEffect(() => onKeyProblem(() => setKeyModalOpen(true)), []);
+
   const persistSession = async (data: AuthResponse) => {
     tokenStore.set(data.accessToken);
     await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refreshToken);
@@ -83,10 +107,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     setError(null);
     try {
-      const data = await loginRequest(email, password);
-      await persistSession(data);
+      await persistSession(await loginRequest(email, password));
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Check your details and try again.');
+      setError(
+        err.response?.data?.message ||
+          "Login failed. Check your details and try again.",
+      );
       throw err;
     }
   };
@@ -94,10 +120,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     setError(null);
     try {
-      const data = await registerRequest(name, email, password);
-      await persistSession(data);
+      await persistSession(await registerRequest(name, email, password));
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(
+        err.response?.data?.message || "Registration failed. Please try again.",
+      );
       throw err;
     }
   };
@@ -112,13 +139,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await cancelDailyReminder();
     tokenStore.set(null);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    setKeyModalOpen(false);
     setUser(null);
   };
 
-  const updateNotificationSettings = async (updates: Partial<Pick<AuthUser, 'reminderTime' | 'notificationsEnabled' | 'aiProviderPreference' | 'weeklyGoalDays' | 'weeklyGoalMinutes'>>) => {
+  const updateNotificationSettings = async (updates: ProfileUpdates) => {
     const updated = await updateProfileRequest(updates);
     setUser(updated);
     await syncNotificationsForUser(updated);
+  };
+
+  const saveGeminiKey = async (apiKey: string) => {
+    const updated = await saveGeminiKeyRequest(apiKey);
+    setUser(updated);
+    setKeyModalOpen(false);
+  };
+
+  const removeGeminiKey = async () => {
+    const updated = await removeGeminiKeyRequest();
+    setUser(updated);
   };
 
   return (
@@ -133,6 +172,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logout,
         clearError: () => setError(null),
         updateNotificationSettings,
+        keyModalOpen,
+        openKeyModal: () => setKeyModalOpen(true),
+        closeKeyModal: () => setKeyModalOpen(false),
+        saveGeminiKey,
+        removeGeminiKey,
       }}
     >
       {children}
@@ -142,6 +186,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 };

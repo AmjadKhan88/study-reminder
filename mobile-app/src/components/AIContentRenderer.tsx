@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,29 +6,27 @@ import {
   Pressable,
   StyleSheet,
   useWindowDimensions,
-} from 'react-native';
-import Markdown, {
-  RenderRules,
-} from 'react-native-markdown-display';
-import { WebView } from 'react-native-webview';
-import * as Clipboard from 'expo-clipboard';
-import Prism from 'prismjs';
+} from "react-native";
+import Markdown, { RenderRules } from "react-native-markdown-display";
+import { WebView } from "react-native-webview";
+import * as Clipboard from "expo-clipboard";
+import Prism from "prismjs";
 
 // Prism language support
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-sql';
+import "prismjs/components/prism-clike";
+import "prismjs/components/prism-c";
+import "prismjs/components/prism-cpp";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-markup";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-sql";
 
-import { Theme } from '../theme/colors';
+import { Theme } from "../theme/colors";
 
 type AIContentRendererProps = {
   content: string;
@@ -54,45 +52,45 @@ type WebViewBlockProps = {
 /* -------------------------------------------------------------------------- */
 
 const LANGUAGE_ALIASES: Record<string, string> = {
-  js: 'javascript',
-  jsx: 'javascript',
-  mjs: 'javascript',
+  js: "javascript",
+  jsx: "javascript",
+  mjs: "javascript",
 
-  ts: 'typescript',
-  tsx: 'typescript',
+  ts: "typescript",
+  tsx: "typescript",
 
-  py: 'python',
+  py: "python",
 
-  cpp: 'cpp',
-  cc: 'cpp',
-  cxx: 'cpp',
-  hpp: 'cpp',
-  h: 'cpp',
+  cpp: "cpp",
+  cc: "cpp",
+  cxx: "cpp",
+  hpp: "cpp",
+  h: "cpp",
 
-  c: 'c',
+  c: "c",
 
-  sh: 'bash',
-  shell: 'bash',
-  zsh: 'bash',
+  sh: "bash",
+  shell: "bash",
+  zsh: "bash",
 
-  html: 'markup',
-  xml: 'markup',
+  html: "markup",
+  xml: "markup",
 
-  yml: 'yaml',
-  md: 'markdown',
+  yml: "yaml",
+  md: "markdown",
 
-  mysql: 'sql',
-  postgres: 'sql',
-  postgresql: 'sql',
+  mysql: "sql",
+  postgres: "sql",
+  postgresql: "sql",
 };
 
 function normalizeLanguage(language?: string): string {
-  if (!language) return 'javascript';
+  if (!language) return "javascript";
 
   const normalized = language
     .trim()
     .toLowerCase()
-    .replace(/^language-/, '');
+    .replace(/^language-/, "");
 
   return LANGUAGE_ALIASES[normalized] || normalized;
 }
@@ -103,109 +101,101 @@ function normalizeLanguage(language?: string): string {
 
 function escapeHtml(value: string): string {
   return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /* -------------------------------------------------------------------------- */
 /*                              COPY BUTTON                                   */
 /* -------------------------------------------------------------------------- */
 
-const CopyButton = memo(
-  ({
-    code,
-    theme,
-  }: {
-    code: string;
-    theme: Theme;
-  }) => {
-    const [copied, setCopied] = useState(false);
+const CopyButton = memo(({ code, theme }: { code: string; theme: Theme }) => {
+  const [copied, setCopied] = useState(false);
 
-    const handleCopy = async () => {
-      try {
-        await Clipboard.setStringAsync(code);
+  const handleCopy = async () => {
+    try {
+      await Clipboard.setStringAsync(code);
 
-        setCopied(true);
+      setCopied(true);
 
-        setTimeout(() => {
-          setCopied(false);
-        }, 1500);
-      } catch (error) {
-        console.warn('Failed to copy code:', error);
-      }
-    };
+      setTimeout(() => {
+        setCopied(false);
+      }, 1500);
+    } catch (error) {
+      console.warn("Failed to copy code:", error);
+    }
+  };
 
-    return (
-      <Pressable
-        onPress={handleCopy}
-        style={({ pressed }) => [
-          styles.copyButton,
+  return (
+    <Pressable
+      onPress={handleCopy}
+      style={({ pressed }) => [
+        styles.copyButton,
+        {
+          backgroundColor: theme.surfaceAlt,
+          borderColor: theme.border,
+          opacity: pressed ? 0.7 : 1,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.copyButtonText,
           {
-            backgroundColor: theme.surfaceAlt,
-            borderColor: theme.border,
-            opacity: pressed ? 0.7 : 1,
+            color: copied ? theme.success : theme.textSecondary,
           },
         ]}
       >
-        <Text
-          style={[
-            styles.copyButtonText,
-            {
-              color: copied ? theme.success : theme.textSecondary,
-            },
-          ]}
-        >
-          {copied ? '✓ Copied' : 'Copy'}
-        </Text>
-      </Pressable>
-    );
-  },
-);
+        {copied ? "✓ Copied" : "Copy"}
+      </Text>
+    </Pressable>
+  );
+});
 
 /* -------------------------------------------------------------------------- */
 /*                           PRISM TOKEN RENDERER                             */
 /* -------------------------------------------------------------------------- */
 
 const TOKEN_COLORS: Record<string, string> = {
-  comment: '#6A9955',
-  prolog: '#6A9955',
-  doctype: '#6A9955',
-  cdata: '#6A9955',
+  comment: "#6A9955",
+  prolog: "#6A9955",
+  doctype: "#6A9955",
+  cdata: "#6A9955",
 
-  punctuation: '#D4D4D4',
+  punctuation: "#D4D4D4",
 
-  property: '#9CDCFE',
-  tag: '#569CD6',
-  boolean: '#569CD6',
-  number: '#B5CEA8',
-  constant: '#4FC1FF',
-  symbol: '#4FC1FF',
+  property: "#9CDCFE",
+  tag: "#569CD6",
+  boolean: "#569CD6",
+  number: "#B5CEA8",
+  constant: "#4FC1FF",
+  symbol: "#4FC1FF",
 
-  selector: '#D7BA7D',
-  'attr-name': '#9CDCFE',
+  selector: "#D7BA7D",
+  "attr-name": "#9CDCFE",
 
-  string: '#CE9178',
-  char: '#CE9178',
-  builtin: '#4EC9B0',
+  string: "#CE9178",
+  char: "#CE9178",
+  builtin: "#4EC9B0",
 
-  operator: '#D4D4D4',
-  entity: '#D4D4D4',
-  url: '#4EC9B0',
+  operator: "#D4D4D4",
+  entity: "#D4D4D4",
+  url: "#4EC9B0",
 
-  variable: '#9CDCFE',
+  variable: "#9CDCFE",
 
-  function: '#DCDCAA',
+  function: "#DCDCAA",
 
-  keyword: '#C586C0',
+  keyword: "#C586C0",
 
-  regex: '#D16969',
-  important: '#569CD6',
-  atrule: '#C586C0',
+  regex: "#D16969",
+  important: "#569CD6",
+  atrule: "#C586C0",
 
-  className: '#4EC9B0',
+  className: "#4EC9B0",
 };
 
 function getTokenColor(type: string, theme: Theme): string {
@@ -215,12 +205,12 @@ function getTokenColor(type: string, theme: Theme): string {
 function renderPrismTokens(
   tokens: Prism.TokenStream,
   theme: Theme,
-  keyPrefix = '',
+  keyPrefix = "",
 ): React.ReactNode[] {
   return tokens.map((token, index) => {
     const key = `${keyPrefix}-${index}`;
 
-    if (typeof token === 'string') {
+    if (typeof token === "string") {
       return (
         <Text key={key} style={{ color: theme.textPrimary }}>
           {token}
@@ -234,7 +224,7 @@ function renderPrismTokens(
 
     if (Array.isArray(tokenContent)) {
       children = renderPrismTokens(tokenContent, theme, key);
-    } else if (typeof tokenContent === 'string') {
+    } else if (typeof tokenContent === "string") {
       children = tokenContent;
     } else {
       children = String(tokenContent);
@@ -257,104 +247,88 @@ function renderPrismTokens(
 /*                              CODE BLOCK                                    */
 /* -------------------------------------------------------------------------- */
 
-const CodeBlock = memo(
-  ({ code, language, theme }: CodeBlockProps) => {
-    const normalizedLanguage = normalizeLanguage(language);
+const CodeBlock = memo(({ code, language, theme }: CodeBlockProps) => {
+  const normalizedLanguage = normalizeLanguage(language);
 
-    const highlightedCode = useMemo(() => {
-      try {
-        const grammar = Prism.languages[normalizedLanguage];
+  const highlightedCode = useMemo(() => {
+    try {
+      const grammar = Prism.languages[normalizedLanguage];
 
-        if (!grammar) {
-          return (
-            <Text style={{ color: theme.textPrimary }}>
-              {code}
-            </Text>
-          );
-        }
-
-        const tokens = Prism.tokenize(code, grammar);
-
-        return renderPrismTokens(tokens, theme);
-      } catch (error) {
-        console.warn(
-          `Prism failed for language "${normalizedLanguage}":`,
-          error,
-        );
-
-        return (
-          <Text style={{ color: theme.textPrimary }}>
-            {code}
-          </Text>
-        );
+      if (!grammar) {
+        return <Text style={{ color: theme.textPrimary }}>{code}</Text>;
       }
-    }, [code, normalizedLanguage, theme]);
 
-    return (
+      const tokens = Prism.tokenize(code, grammar);
+
+      return renderPrismTokens(tokens, theme);
+    } catch (error) {
+      console.warn(`Prism failed for language "${normalizedLanguage}":`, error);
+
+      return <Text style={{ color: theme.textPrimary }}>{code}</Text>;
+    }
+  }, [code, normalizedLanguage, theme]);
+
+  return (
+    <View
+      style={[
+        styles.codeContainer,
+        {
+          backgroundColor: theme.background,
+          borderColor: theme.border,
+        },
+      ]}
+    >
+      {/* Code header */}
       <View
         style={[
-          styles.codeContainer,
+          styles.codeHeader,
           {
-            backgroundColor: theme.background,
-            borderColor: theme.border,
+            backgroundColor: theme.surfaceAlt,
+            borderBottomColor: theme.border,
           },
         ]}
       >
-        {/* Code header */}
-        <View
+        <Text
           style={[
-            styles.codeHeader,
+            styles.languageText,
             {
-              backgroundColor: theme.surfaceAlt,
-              borderBottomColor: theme.border,
+              color: theme.textSecondary,
             },
           ]}
         >
-          <Text
-            style={[
-              styles.languageText,
-              {
-                color: theme.textSecondary,
-              },
-            ]}
-          >
-            {normalizedLanguage}
-          </Text>
+          {normalizedLanguage}
+        </Text>
 
-          <CopyButton code={code} theme={theme} />
-        </View>
-
-        {/* Code */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.codeScrollContent}
-        >
-          <Text
-            selectable
-            style={[
-              styles.codeText,
-              {
-                color: theme.textPrimary,
-              },
-            ]}
-          >
-            {highlightedCode}
-          </Text>
-        </ScrollView>
+        <CopyButton code={code} theme={theme} />
       </View>
-    );
-  },
-);
+
+      {/* Code */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.codeScrollContent}
+      >
+        <Text
+          selectable
+          style={[
+            styles.codeText,
+            {
+              color: theme.textPrimary,
+            },
+          ]}
+        >
+          {highlightedCode}
+        </Text>
+      </ScrollView>
+    </View>
+  );
+});
 
 /* -------------------------------------------------------------------------- */
 /*                              MERMAID BLOCK                                  */
 /* -------------------------------------------------------------------------- */
 
-function createMermaidHtml(
-  diagram: string,
-  theme: Theme,
-): string {
+function createMermaidHtml(diagram: string, theme: Theme): string {
   const escapedDiagram = escapeHtml(diagram);
 
   const isDark = true;
@@ -414,7 +388,7 @@ ${escapedDiagram}
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: 'strict',
-        theme: '${isDark ? 'dark' : 'default'}',
+        theme: '${isDark ? "dark" : "default"}',
         flowchart: {
           useMaxWidth: true,
           htmlLabels: false
@@ -467,10 +441,7 @@ ${escapedDiagram}
 /*                              LATEX BLOCK                                   */
 /* -------------------------------------------------------------------------- */
 
-function createLatexHtml(
-  latex: string,
-  theme: Theme,
-): string {
+function createLatexHtml(latex: string, theme: Theme): string {
   const escapedLatex = escapeHtml(latex);
 
   return `
@@ -576,11 +547,7 @@ window.addEventListener('load', function() {
 /* -------------------------------------------------------------------------- */
 
 const WebViewBlock = memo(
-  ({
-    html,
-    height = 120,
-    theme,
-  }: WebViewBlockProps) => {
+  ({ html, height = 120, theme }: WebViewBlockProps) => {
     const [webHeight, setWebHeight] = useState(height);
 
     return (
@@ -594,7 +561,7 @@ const WebViewBlock = memo(
         ]}
       >
         <WebView
-          originWhitelist={['*']}
+          originWhitelist={["*"]}
           source={{ html }}
           javaScriptEnabled
           domStorageEnabled
@@ -604,19 +571,14 @@ const WebViewBlock = memo(
           showsHorizontalScrollIndicator={false}
           style={{
             height: webHeight,
-            backgroundColor: 'transparent',
+            backgroundColor: "transparent",
           }}
           onMessage={(event) => {
             try {
               const data = JSON.parse(event.nativeEvent.data);
 
-              if (
-                data.type === 'height' &&
-                typeof data.height === 'number'
-              ) {
-                setWebHeight(
-                  Math.max(60, Math.min(data.height + 16, 1000)),
-                );
+              if (data.type === "height" && typeof data.height === "number") {
+                setWebHeight(Math.max(60, Math.min(data.height + 16, 1000)));
               }
             } catch {
               // Ignore malformed WebView messages
@@ -646,74 +608,202 @@ const WebViewBlock = memo(
  *
  * and replaces them with placeholders.
  */
+const GREEK: Record<string, string> = {
+  alpha: "α",
+  beta: "β",
+  gamma: "γ",
+  delta: "δ",
+  epsilon: "ε",
+  eta: "η",
+  theta: "θ",
+  lambda: "λ",
+  mu: "μ",
+  nu: "ν",
+  pi: "π",
+  rho: "ρ",
+  sigma: "σ",
+  tau: "τ",
+  phi: "φ",
+  psi: "ψ",
+  omega: "ω",
+  Gamma: "Γ",
+  Delta: "Δ",
+  Theta: "Θ",
+  Lambda: "Λ",
+  Pi: "Π",
+  Sigma: "Σ",
+  Phi: "Φ",
+  Psi: "Ψ",
+  Omega: "Ω",
+};
+const SYMBOLS: Record<string, string> = {
+  times: "×",
+  cdot: "·",
+  div: "÷",
+  pm: "±",
+  leq: "≤",
+  le: "≤",
+  geq: "≥",
+  ge: "≥",
+  neq: "≠",
+  ne: "≠",
+  approx: "≈",
+  infty: "∞",
+  rightarrow: "→",
+  to: "→",
+  leftarrow: "←",
+  Rightarrow: "⇒",
+  leftrightarrow: "↔",
+  sum: "Σ",
+  int: "∫",
+  degree: "°",
+  circ: "°",
+  partial: "∂",
+  nabla: "∇",
+  in: "∈",
+  cup: "∪",
+  cap: "∩",
+  forall: "∀",
+  exists: "∃",
+  therefore: "∴",
+  ldots: "…",
+  dots: "…",
+  left: "",
+  right: "",
+};
+const SUP: Record<string, string> = {
+  "0": "⁰",
+  "1": "¹",
+  "2": "²",
+  "3": "³",
+  "4": "⁴",
+  "5": "⁵",
+  "6": "⁶",
+  "7": "⁷",
+  "8": "⁸",
+  "9": "⁹",
+  "+": "⁺",
+  "-": "⁻",
+  n: "ⁿ",
+};
+const SUB: Record<string, string> = {
+  "0": "₀",
+  "1": "₁",
+  "2": "₂",
+  "3": "₃",
+  "4": "₄",
+  "5": "₅",
+  "6": "₆",
+  "7": "₇",
+  "8": "₈",
+  "9": "₉",
+  "+": "₊",
+  "-": "₋",
+};
+
+function toScript(value: string, map: Record<string, string>): string | null {
+  const chars = value.split("");
+  return chars.every((c) => map[c]) ? chars.map((c) => map[c]).join("") : null;
+}
+
+// Inline $...$ math becomes readable Unicode text (x², √(16), H₂O, α, ...).
+// Display math ($$...$$) is rendered with real KaTeX in a WebView instead.
+function latexToPlain(tex: string): string {
+  let s = tex.replace(/\\[,;! ]/g, " ");
+  s = s.replace(
+    /\\(?:text|mathrm|mathbf|mathit|operatorname)\{([^}]*)\}/g,
+    "$1",
+  );
+  s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)");
+  s = s.replace(/\\sqrt\{([^{}]*)\}/g, "√($1)");
+  s = s.replace(
+    /\\([a-zA-Z]+)/g,
+    (_m, name: string) => GREEK[name] ?? SYMBOLS[name] ?? name,
+  );
+  s = s.replace(/\^\{([^{}]*)\}|\^(\w)/g, (_m, a?: string, b?: string) => {
+    const v = (a ?? b) as string;
+    return toScript(v, SUP) ?? `^(${v})`;
+  });
+  s = s.replace(/_\{([^{}]*)\}|_(\w)/g, (_m, a?: string, b?: string) => {
+    const v = (a ?? b) as string;
+    return toScript(v, SUB) ?? `_${v}`;
+  });
+  return s
+    .replace(/[{}]/g, "")
+    .replace(/\\/g, "")
+    .replace(/([_*])/g, "\\$1")
+    .trim();
+}
+
 function preprocessSpecialBlocks(content: string): {
   markdown: string;
-  blocks: Map<
-    string,
-    {
-      type: 'mermaid' | 'latex';
-      content: string;
-    }
-  >;
+  blocks: Map<string, { type: "mermaid" | "latex"; content: string }>;
 } {
   const blocks = new Map<
     string,
-    {
-      type: 'mermaid' | 'latex';
-      content: string;
-    }
+    { type: "mermaid" | "latex"; content: string }
   >();
-
   let counter = 0;
 
-  const markdown = content.replace(
-    /```(mermaid|latex|math)\s*\n([\s\S]*?)```/gi,
-    (_, type: string, code: string) => {
-      const id = `AI_SPECIAL_BLOCK_${counter++}`;
-
-      blocks.set(id, {
-        type:
-          type.toLowerCase() === 'mermaid'
-            ? 'mermaid'
-            : 'latex',
-        content: code.trim(),
-      });
-
-      return `\n\n${id}\n\n`;
-    },
-  );
-
-  return {
-    markdown,
-    blocks,
+  const addBlock = (type: "mermaid" | "latex", text: string) => {
+    const id = `AI_SPECIAL_BLOCK_${counter++}`;
+    blocks.set(id, { type, content: text.trim() });
+    return `\n\n${id}\n\n`;
   };
+
+  // Split on fenced code so we never touch "$" characters inside real code.
+  const parts = content.split(/(```[\s\S]*?```)/g);
+
+  const markdown = parts
+    .map((part) => {
+      if (part.startsWith("```")) {
+        return part.replace(
+          /^```(mermaid|latex|math)[ \t]*\n([\s\S]*?)```$/i,
+          (_m, type: string, code: string) =>
+            addBlock(
+              type.toLowerCase() === "mermaid" ? "mermaid" : "latex",
+              code,
+            ),
+        );
+      }
+      return part
+        .replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex: string) =>
+          addBlock("latex", tex),
+        )
+        .replace(/\$([^\s$](?:[^$\n]*?[^\s$])?)\$/g, (_m, tex: string) =>
+          latexToPlain(tex),
+        );
+    })
+    .join("");
+
+  return { markdown, blocks };
 }
 
 /* -------------------------------------------------------------------------- */
 /*                              CODE EXTRACTION                               */
 /* -------------------------------------------------------------------------- */
 
-function extractCodeInfo(
-  node: any,
-): {
+function extractCodeInfo(node: any): {
   code: string;
   language?: string;
 } {
   const code =
-    typeof node?.content === 'string'
+    typeof node?.content === "string"
       ? node.content
-      : typeof node?.children?.[0]?.content === 'string'
+      : typeof node?.children?.[0]?.content === "string"
         ? node.children[0].content
-        : '';
+        : "";
 
   let language: string | undefined;
+
+  if (typeof node?.sourceInfo === "string" && node.sourceInfo.trim()) {
+    language = node.sourceInfo.trim().split(/\s+/)[0];
+  }
 
   if (node?.attributes?.className) {
     const className = String(node.attributes.className);
 
-    const match = className.match(
-      /language-([a-zA-Z0-9_-]+)/,
-    );
+    const match = className.match(/language-([a-zA-Z0-9_-]+)/);
 
     if (match) {
       language = match[1];
@@ -723,9 +813,7 @@ function extractCodeInfo(
   if (!language && node?.attributes?.class) {
     const className = String(node.attributes.class);
 
-    const match = className.match(
-      /language-([a-zA-Z0-9_-]+)/,
-    );
+    const match = className.match(/language-([a-zA-Z0-9_-]+)/);
 
     if (match) {
       language = match[1];
@@ -733,7 +821,7 @@ function extractCodeInfo(
   }
 
   return {
-    code: code.replace(/\n$/, ''),
+    code: code.replace(/\n$/, ""),
     language,
   };
 }
@@ -750,11 +838,8 @@ function AIContentRenderer({
 }: AIContentRendererProps) {
   const { width } = useWindowDimensions();
 
-  const {
-    markdown,
-    blocks,
-  } = useMemo(
-    () => preprocessSpecialBlocks(content || ''),
+  const { markdown, blocks } = useMemo(
+    () => preprocessSpecialBlocks(content || ""),
     [content],
   );
 
@@ -771,7 +856,7 @@ function AIContentRenderer({
           color: theme.textPrimary,
           fontSize: fontSize + 9,
           lineHeight: fontSize + 15,
-          fontWeight: '700',
+          fontWeight: "700",
           marginTop: 18,
           marginBottom: 10,
         },
@@ -780,7 +865,7 @@ function AIContentRenderer({
           color: theme.textPrimary,
           fontSize: fontSize + 6,
           lineHeight: fontSize + 12,
-          fontWeight: '700',
+          fontWeight: "700",
           marginTop: 16,
           marginBottom: 8,
         },
@@ -789,7 +874,7 @@ function AIContentRenderer({
           color: theme.textPrimary,
           fontSize: fontSize + 3,
           lineHeight: fontSize + 9,
-          fontWeight: '700',
+          fontWeight: "700",
           marginTop: 14,
           marginBottom: 7,
         },
@@ -797,7 +882,7 @@ function AIContentRenderer({
         heading4: {
           color: theme.textPrimary,
           fontSize: fontSize + 1,
-          fontWeight: '700',
+          fontWeight: "700",
           marginTop: 12,
           marginBottom: 6,
         },
@@ -812,12 +897,12 @@ function AIContentRenderer({
 
         strong: {
           color: theme.textPrimary,
-          fontWeight: '700',
+          fontWeight: "700",
         },
 
         em: {
           color: theme.textPrimary,
-          fontStyle: 'italic',
+          fontStyle: "italic",
         },
 
         bullet_list: {
@@ -839,7 +924,7 @@ function AIContentRenderer({
 
         ordered_list_icon: {
           color: theme.primary,
-          fontWeight: '700',
+          fontWeight: "700",
         },
 
         blockquote: {
@@ -858,12 +943,12 @@ function AIContentRenderer({
           borderWidth: StyleSheet.hairlineWidth,
           borderRadius: 4,
           paddingHorizontal: 4,
-          fontFamily: 'monospace',
+          fontFamily: "monospace",
         },
 
         link: {
           color: theme.primary,
-          textDecorationLine: 'underline',
+          textDecorationLine: "underline",
         },
 
         hr: {
@@ -884,7 +969,7 @@ function AIContentRenderer({
 
         th: {
           color: theme.textPrimary,
-          fontWeight: '700',
+          fontWeight: "700",
           padding: 8,
           borderRightWidth: 1,
           borderBottomWidth: 1,
@@ -915,21 +1000,14 @@ function AIContentRenderer({
     () => ({
       /* ------------------------------ code blocks ----------------------- */
 
-      fence: (
-        node: any,
-      ) => {
-        const { code, language } =
-          extractCodeInfo(node);
+      fence: (node: any) => {
+        const { code, language } = extractCodeInfo(node);
 
-        const normalizedLanguage =
-          normalizeLanguage(language);
+        const normalizedLanguage = normalizeLanguage(language);
 
         // Mermaid
-        if (normalizedLanguage === 'mermaid') {
-          const html = createMermaidHtml(
-            code,
-            theme,
-          );
+        if (normalizedLanguage === "mermaid") {
+          const html = createMermaidHtml(code, theme);
 
           return (
             <WebViewBlock
@@ -942,14 +1020,8 @@ function AIContentRenderer({
         }
 
         // LaTeX / Math
-        if (
-          normalizedLanguage === 'latex' ||
-          normalizedLanguage === 'math'
-        ) {
-          const html = createLatexHtml(
-            code,
-            theme,
-          );
+        if (normalizedLanguage === "latex" || normalizedLanguage === "math") {
+          const html = createLatexHtml(code, theme);
 
           return (
             <WebViewBlock
@@ -973,17 +1045,9 @@ function AIContentRenderer({
 
       /* ------------------------------ inline code ----------------------- */
 
-      code_inline: (
-        node: any,
-        _children: any,
-        _parent: any,
-        styles: any,
-      ) => {
+      code_inline: (node: any, _children: any, _parent: any, styles: any) => {
         return (
-          <Text
-            key={node.key}
-            style={styles.code_inline}
-          >
+          <Text key={node.key} style={styles.code_inline}>
             {node.content}
           </Text>
         );
@@ -991,45 +1055,29 @@ function AIContentRenderer({
 
       /* ------------------------------ special blocks -------------------- */
 
-      paragraph: (
-        node: any,
-        children: any,
-        _parent: any,
-        styles: any,
-      ) => {
-        const firstChild =
-          node.children?.[0];
+      paragraph: (node: any, children: any, _parent: any, styles: any) => {
+        const firstChild = node.children?.[0];
 
-        if (
-          firstChild &&
-          typeof firstChild.content === 'string'
-        ) {
-          const special =
-            blocks.get(firstChild.content.trim());
+        if (firstChild && typeof firstChild.content === "string") {
+          const special = blocks.get(firstChild.content.trim());
 
           if (special) {
-            if (special.type === 'mermaid') {
+            if (special.type === "mermaid") {
               return (
                 <WebViewBlock
                   key={node.key}
-                  html={createMermaidHtml(
-                    special.content,
-                    theme,
-                  )}
+                  html={createMermaidHtml(special.content, theme)}
                   height={180}
                   theme={theme}
                 />
               );
             }
 
-            if (special.type === 'latex') {
+            if (special.type === "latex") {
               return (
                 <WebViewBlock
                   key={node.key}
-                  html={createLatexHtml(
-                    special.content,
-                    theme,
-                  )}
+                  html={createLatexHtml(special.content, theme)}
                   height={100}
                   theme={theme}
                 />
@@ -1039,10 +1087,7 @@ function AIContentRenderer({
         }
 
         return (
-          <Text
-            key={node.key}
-            style={styles.paragraph}
-          >
+          <Text key={node.key} style={styles.paragraph}>
             {children}
           </Text>
         );
@@ -1057,10 +1102,7 @@ function AIContentRenderer({
 
   return (
     <View style={styles.container}>
-      <Markdown
-        style={markdownStyles}
-        rules={rules}
-      >
+      <Markdown style={markdownStyles} rules={rules}>
         {markdown}
       </Markdown>
     </View>
@@ -1075,29 +1117,29 @@ export default memo(AIContentRenderer);
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: "100%",
   },
 
   codeContainer: {
     marginVertical: 10,
     borderWidth: 1,
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 
   codeHeader: {
     minHeight: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 10,
     borderBottomWidth: 1,
   },
 
   languageText: {
     fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    textTransform: "uppercase",
   },
 
   copyButton: {
@@ -1106,13 +1148,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 6,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   copyButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   codeScrollContent: {
@@ -1120,16 +1162,16 @@ const styles = StyleSheet.create({
   },
 
   codeText: {
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     fontSize: 13,
     lineHeight: 20,
   },
 
   webViewContainer: {
-    width: '100%',
+    width: "100%",
     marginVertical: 10,
     borderWidth: 1,
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

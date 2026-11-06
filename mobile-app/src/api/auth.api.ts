@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api } from "./client";
 
 export interface AuthUser {
   id: string;
@@ -6,9 +6,10 @@ export interface AuthUser {
   email: string;
   reminderTime: string;
   notificationsEnabled: boolean;
-  aiProviderPreference: 'gemini' | 'openai' | 'groq';
+  aiProviderPreference: "gemini" | "openai" | "groq";
   weeklyGoalDays: number;
   weeklyGoalMinutes: number;
+  hasGeminiKey: boolean;
 }
 
 export interface AuthResponse {
@@ -17,28 +18,77 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
-export const registerRequest = (name: string, email: string, password: string) =>
-  api.post<AuthResponse>('/auth/register', { name, email, password }).then((r) => r.data);
+export const registerRequest = (
+  name: string,
+  email: string,
+  password: string,
+) =>
+  api
+    .post<AuthResponse>("/auth/register", { name, email, password })
+    .then((r) => r.data);
 
 export const loginRequest = (email: string, password: string) =>
-  api.post<AuthResponse>('/auth/login', { email, password }).then((r) => r.data);
+  api
+    .post<AuthResponse>("/auth/login", { email, password })
+    .then((r) => r.data);
 
-export const logoutRequest = (refreshToken: string | null) => api.post('/auth/logout', { refreshToken });
+export const logoutRequest = (refreshToken: string | null) =>
+  api.post("/auth/logout", { refreshToken });
 
-export const meRequest = () => api.get<{ user: AuthUser }>('/auth/me').then((r) => r.data);
+export const meRequest = () =>
+  api.get<{ user: AuthUser }>("/auth/me").then((r) => r.data);
 
-export const updateProfileRequest = (updates: Partial<Pick<AuthUser, 'reminderTime' | 'notificationsEnabled' | 'aiProviderPreference' | 'weeklyGoalDays' | 'weeklyGoalMinutes'>>) =>
-  api.patch<{ user: AuthUser }>('/auth/me', updates).then((r) => r.data.user);
-export const savePushTokenRequest = (pushToken: string) => api.post('/auth/push-token', { pushToken });
+export const updateProfileRequest = (
+  updates: Partial<
+    Pick<
+      AuthUser,
+      | "reminderTime"
+      | "notificationsEnabled"
+      | "aiProviderPreference"
+      | "weeklyGoalDays"
+      | "weeklyGoalMinutes"
+    >
+  >,
+) =>
+  api.patch<{ user: AuthUser }>("/auth/me", updates).then((r) => r.data.user);
+export const savePushTokenRequest = (pushToken: string) =>
+  api.post("/auth/push-token", { pushToken });
 
 export const forgotPasswordRequest = (email: string) =>
-  api.post<{ message: string }>('/auth/forgot-password', { email }).then((r) => r.data);
+  api
+    .post<{ message: string }>("/auth/forgot-password", { email })
+    .then((r) => r.data);
 
-export const resetPasswordRequest = (email: string, code: string, newPassword: string) =>
-  api.post<{ message: string }>('/auth/reset-password', { email, code, newPassword }).then((r) => r.data);
+export const resetPasswordRequest = (
+  email: string,
+  code: string,
+  newPassword: string,
+) =>
+  api
+    .post<{
+      message: string;
+    }>("/auth/reset-password", { email, code, newPassword })
+    .then((r) => r.data);
 
-export const changePasswordRequest = (currentPassword: string, newPassword: string) =>
-  api.post<{ message: string }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.data);
+export const changePasswordRequest = (
+  currentPassword: string,
+  newPassword: string,
+) =>
+  api
+    .post<{
+      message: string;
+    }>("/auth/change-password", { currentPassword, newPassword })
+    .then((r) => r.data);
 
 export const deleteAccountRequest = (password: string) =>
-  api.post<{ message: string }>('/auth/delete-account', { password }).then((r) => r.data);
+  api
+    .post<{ message: string }>("/auth/delete-account", { password })
+    .then((r) => r.data);
+
+export const saveGeminiKeyRequest = (apiKey: string) =>
+  api
+    .put<{ user: AuthUser }>("/auth/gemini-key", { apiKey })
+    .then((r) => r.data.user);
+
+export const removeGeminiKeyRequest = () =>
+  api.delete<{ user: AuthUser }>("/auth/gemini-key").then((r) => r.data.user);

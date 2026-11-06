@@ -1,7 +1,8 @@
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { tokenStore } from './tokenStore';
-import { API_BASE_URL, REFRESH_TOKEN_KEY } from '../utils/constants';
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
+import { tokenStore } from "./tokenStore";
+import { API_BASE_URL, REFRESH_TOKEN_KEY } from "../utils/constants";
+import { emitKeyProblem } from "../utils/keyEvents";
 
 export const api = axios.create({ baseURL: API_BASE_URL, timeout: 60000 }); // 60s — generous for AI calls, but not infinite
 
@@ -30,13 +31,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const apiCode = error.response?.data?.apiCode;
+    if (apiCode === "GEMINI_KEY_REQUIRED" || apiCode === "GEMINI_KEY_INVALID")
+      emitKeyProblem();
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         if (!refreshPromise) refreshPromise = refreshAccessToken();
         const newToken = await refreshPromise;
         refreshPromise = null;
-        if (!newToken) throw new Error('No refresh token available');
+        if (!newToken) throw new Error("No refresh token available");
 
         tokenStore.set(newToken);
         originalRequest.headers = originalRequest.headers ?? {};
@@ -49,5 +53,5 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );

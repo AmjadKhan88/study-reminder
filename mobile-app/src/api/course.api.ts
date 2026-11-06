@@ -1,8 +1,9 @@
-import { api } from './client';
+import { api } from "./client";
 
-export type AIProvider = 'gemini' | 'openai' | 'groq';
-export type DurationUnit = 'weeks' | 'months';
-export type CourseStatus = 'draft' | 'generating' | 'active' | 'completed';
+export type AIProvider = "gemini" | "openai" | "groq";
+export type DurationUnit = "weeks" | "months";
+export type CourseStatus = "draft" | "generating" | "active" | "completed";
+export type Difficulty = "easy" | "medium" | "difficult";
 
 export interface Course {
   _id: string;
@@ -16,6 +17,7 @@ export interface Course {
   status: CourseStatus;
   archived: boolean;
   createdAt: string;
+  difficulty?: Difficulty;
 }
 
 export interface CreateCoursePayload {
@@ -23,7 +25,7 @@ export interface CreateCoursePayload {
   outline: string;
   durationValue: number;
   durationUnit: DurationUnit;
-  aiProvider: AIProvider;
+  difficulty: Difficulty;
 }
 
 export interface StudyPlanDay {
@@ -32,7 +34,7 @@ export interface StudyPlanDay {
   topic: string;
   subtopics: string[];
   estimatedMinutes: number;
-  status: 'pending' | 'completed';
+  status: "pending" | "completed";
   content?: string | null;
   keyConcepts?: string[];
   tips?: string[];
@@ -43,41 +45,64 @@ export interface StudyPlan {
   course: string;
   totalDays: number;
   days: StudyPlanDay[];
-  generationStatus: 'pending' | 'completed' | 'failed';
+  generationStatus: "pending" | "completed" | "failed";
 }
 
 export const createCourseRequest = (payload: CreateCoursePayload) =>
-  api.post<{ course: Course }>('/courses', payload).then((r) => r.data.course);
+  api.post<{ course: Course }>("/courses", payload).then((r) => r.data.course);
 
 export const getMyCoursesRequest = (archived = false) =>
-  api.get<{ courses: Course[] }>('/courses', { params: { archived } }).then((r) => r.data.courses);
+  api
+    .get<{ courses: Course[] }>("/courses", { params: { archived } })
+    .then((r) => r.data.courses);
 
 export const getCourseByIdRequest = (id: string) =>
   api.get<{ course: Course }>(`/courses/${id}`).then((r) => r.data.course);
 
-export const updateCourseRequest = (id: string, updates: { title?: string; aiProvider?: AIProvider }) =>
-  api.patch<{ course: Course }>(`/courses/${id}`, updates).then((r) => r.data.course);
+export const updateCourseRequest = (
+  id: string,
+  updates: { title?: string; aiProvider?: AIProvider },
+) =>
+  api
+    .patch<{ course: Course }>(`/courses/${id}`, updates)
+    .then((r) => r.data.course);
 
 export const archiveCourseRequest = (id: string) =>
-  api.patch<{ course: Course }>(`/courses/${id}/archive`).then((r) => r.data.course);
+  api
+    .patch<{ course: Course }>(`/courses/${id}/archive`)
+    .then((r) => r.data.course);
 
 export const unarchiveCourseRequest = (id: string) =>
-  api.patch<{ course: Course }>(`/courses/${id}/unarchive`).then((r) => r.data.course);
+  api
+    .patch<{ course: Course }>(`/courses/${id}/unarchive`)
+    .then((r) => r.data.course);
 
 export const deleteCourseRequest = (id: string) => api.delete(`/courses/${id}`);
 
 export const generatePlanRequest = (courseId: string) =>
-  api.post<{ plan: StudyPlan }>(`/courses/${courseId}/generate-plan`).then((r) => r.data.plan);
+  api
+    .post<{ plan: StudyPlan }>(`/courses/${courseId}/generate-plan`)
+    .then((r) => r.data.plan);
 
 export const getPlanRequest = (courseId: string) =>
-  api.get<{ plan: StudyPlan }>(`/courses/${courseId}/plan`).then((r) => r.data.plan);
+  api
+    .get<{ plan: StudyPlan }>(`/courses/${courseId}/plan`)
+    .then((r) => r.data.plan);
 
-export const getDayContentRequest = (courseId: string, dayNumber: number, regenerate = false) =>
+export const getDayContentRequest = (
+  courseId: string,
+  dayNumber: number,
+  regenerate = false,
+) =>
   api
     .get<{ day: StudyPlanDay }>(`/courses/${courseId}/days/${dayNumber}`, {
-      params: regenerate ? { regenerate: 'true' } : undefined,
+      params: regenerate ? { regenerate: "true" } : undefined,
     })
     .then((r) => r.data.day);
 
 export const markDayCompleteRequest = (courseId: string, dayNumber: number) =>
-  api.patch<{ day: StudyPlanDay }>(`/courses/${courseId}/days/${dayNumber}/complete`).then((r) => r.data.day);
+  api
+    .patch<{
+      day: StudyPlanDay;
+    }>(`/courses/${courseId}/days/${dayNumber}/complete`)
+    .then((r) => r.data.day);
