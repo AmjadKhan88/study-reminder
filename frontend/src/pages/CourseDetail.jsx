@@ -107,9 +107,7 @@ export default function CourseDetail() {
                     </button>
                   )}
                 </div>
-                <Link to={`/courses/${id}/notes`} className="sp-btn sp-btn-white">
-                  <FileText size={15} /> Lecture notes
-                </Link>
+
               </div>
 
               {progress && (
