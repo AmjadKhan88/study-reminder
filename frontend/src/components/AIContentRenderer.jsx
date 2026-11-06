@@ -129,13 +129,14 @@ function normalizeLanguage(lang) {
 function AIContentRenderer({ content, className = '' }) {
   const components = useMemo(
     () => ({
-      code({ inline, className: langClass, children, ...props }) {
-        const match = /language-(\w+)/.exec(langClass || '');
+      code({ className: langClass, children, ...props }) {
+        const match = /language-([\w-]+)/.exec(langClass || '');
         const rawLang = match?.[1];
         const codeString = String(children).replace(/\n$/, '');
         const lang = normalizeLanguage(rawLang);
+        const isInline = !match && !codeString.includes('\n');
 
-        if (inline) {
+        if (isInline) {
           return (
             <code
               className="px-1 py-0.5 rounded text-sm"
@@ -196,7 +197,7 @@ function AIContentRenderer({ content, className = '' }) {
     <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
         components={components}
       >
         {content}

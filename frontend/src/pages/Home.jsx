@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpenCheck, Upload, Clock, Check, Lock, Sparkles, BrainCircuit, FileText, Flame, Plus,} from 'lucide-react';
+import { BookOpenCheck, Upload, Clock, Check, Lock, Sparkles, BrainCircuit, FileText, Flame, Plus, } from 'lucide-react';
 
 
 
@@ -22,7 +22,7 @@ const COURSES = {
     label: 'DSA Interview Prep',
     header: 'Data Structures & Algorithms',
     topics: '24 Topics',
-    provider: 'OpenAI',
+    provider: 'Gemini',
     hours: '1h 30m / day',
     items: [
       { day: 'DAY 14', title: 'Sliding window technique', desc: 'Fixed and variable window patterns with examples', status: 'completed' },
@@ -35,7 +35,7 @@ const COURSES = {
     label: 'IELTS Preparation',
     header: 'IELTS Academic — Band 7+',
     topics: '12 Modules',
-    provider: 'Groq',
+    provider: 'Gemini',
     hours: '1h 15m / day',
     items: [
       { day: 'DAY 04', title: 'Writing Task 2: argument essays', desc: 'Structuring a balanced opinion essay', status: 'completed' },
@@ -103,7 +103,7 @@ export default function Home() {
             <Link to="/login" className="sp-btn sp-btn-white sp-btn-lg">I have an account</Link>
           </div>
           <p className="text-sm mt-3" style={{ color: 'var(--text-tertiary)' }}>
-            Free to use · Gemini, OpenAI, or Groq · No spreadsheets required
+            Free to use · Powered by Google Gemini · No spreadsheets required
           </p>
         </div>
 
@@ -191,7 +191,7 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8">
           {[
             { n: '01', title: 'Describe what you\'re learning', body: 'Paste a syllabus or write your topics and set a deadline — weeks or months.' },
-            { n: '02', title: 'Get a day-by-day plan', body: 'Your chosen AI breaks it into daily topics with explanations and time estimates.' },
+            { n: '02', title: 'Get a day-by-day plan', body: 'Gemini breaks it into daily topics with explanations and time estimates.' },
             { n: '03', title: 'Study, review, repeat', body: 'Work through each day, test yourself with flashcards and quizzes, build a streak.' },
           ].map((s) => (
             <div key={s.n}>
@@ -248,8 +248,8 @@ export default function Home() {
               </div>
               <div>
                 <div className="sp-bento-icon"><Sparkles size={20} /></div>
-                <h3>Pick your AI</h3>
-                <p>Switch between Gemini, OpenAI, and Groq per course — compare or use what you already pay for.</p>
+                <h3>Your own Gemini key</h3>
+                <p>Add your free Google Gemini key and get your own daily limit.</p>
               </div>
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function Home() {
         <div>
           {[
             { q: 'What formats can I upload for lecture notes?', a: 'PDF, DOCX, and plain text files up to 20MB. StudyPilot extracts the text and makes it searchable for the AI Q&A feature.' },
-            { q: 'Can I use my own AI provider?', a: 'Yes — pick Gemini, OpenAI, or Groq per course, and set a default in Settings for new courses.' },
+            { q: 'Can I use my own AI provider?', a: 'Yes — add your own free Gemini API key in Settings. It is stored encrypted and used only for your requests.' },
             { q: 'What happens if I miss a day?', a: 'Your streak resets, but your plan doesn\'t — every day stays available, so you can pick up right where you left off.' },
             { q: 'Is my data private?', a: 'Your notes and course content are tied to your account and are not shared with other users.' },
           ].map((item, i) => (
