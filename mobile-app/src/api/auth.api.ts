@@ -10,6 +10,7 @@ export interface AuthUser {
   weeklyGoalDays: number;
   weeklyGoalMinutes: number;
   hasGeminiKey: boolean;
+  hasPineconeKey: boolean;
 }
 
 export interface AuthResponse {
@@ -92,3 +93,13 @@ export const saveGeminiKeyRequest = (apiKey: string) =>
 
 export const removeGeminiKeyRequest = () =>
   api.delete<{ user: AuthUser }>("/auth/gemini-key").then((r) => r.data.user);
+
+export const savePineconeKeyRequest = (apiKey: string) =>
+  api
+    .put<{
+      user: AuthUser;
+    }>("/auth/pinecone-key", { apiKey }, { timeout: 120000 })
+    .then((r) => r.data.user);
+
+export const removePineconeKeyRequest = () =>
+  api.delete<{ user: AuthUser }>("/auth/pinecone-key").then((r) => r.data.user);

@@ -11,8 +11,10 @@ import {
   savePushTokenRequest,
   saveGeminiKeyRequest,
   removeGeminiKeyRequest,
+  removePineconeKeyRequest,
   AuthUser,
   AuthResponse,
+  savePineconeKeyRequest,
 } from "../api/auth.api";
 import {
   requestNotificationPermission,
@@ -20,7 +22,7 @@ import {
   scheduleDailyReminder,
   cancelDailyReminder,
 } from "../services/notifications";
-import { onKeyProblem } from "../utils/keyEvents";
+import { onKeyProblem, onPineconeProblem } from "../utils/keyEvents";
 
 type ProfileUpdates = Partial<
   Pick<
@@ -48,6 +50,11 @@ interface AuthContextValue {
   closeKeyModal: () => void;
   saveGeminiKey: (apiKey: string) => Promise<void>;
   removeGeminiKey: () => Promise<void>;
+  pineconeModalOpen: boolean;
+  openPineconeModal: () => void;
+  closePineconeModal: () => void;
+  savePineconeKey: (apiKey: string) => Promise<void>;
+  removePineconeKey: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -71,6 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [keyModalOpen, setKeyModalOpen] = useState(false);
+  const [pineconeModalOpen, setPineconeModalOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -96,6 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Open it when any API call says the key is missing or invalid.
   useEffect(() => onKeyProblem(() => setKeyModalOpen(true)), []);
+  useEffect(() => onPineconeProblem(() => setPineconeModalOpen(true)), []);
 
   const persistSession = async (data: AuthResponse) => {
     tokenStore.set(data.accessToken);
@@ -140,6 +149,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     tokenStore.set(null);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     setKeyModalOpen(false);
+    setPineconeModalOpen(false);
     setUser(null);
   };
 
@@ -160,6 +170,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(updated);
   };
 
+  const savePineconeKey = async (apiKey: string) => {
+    const updated = await savePineconeKeyRequest(apiKey);
+    setUser(updated);
+    setPineconeModalOpen(false);
+  };
+
+  const removePineconeKey = async () => {
+    const updated = await removePineconeKeyRequest();
+    setUser(updated);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -177,6 +198,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         closeKeyModal: () => setKeyModalOpen(false),
         saveGeminiKey,
         removeGeminiKey,
+        pineconeModalOpen,
+        openPineconeModal: () => setPineconeModalOpen(true),
+        closePineconeModal: () => setPineconeModalOpen(false),
+        savePineconeKey,
+        removePineconeKey,
       }}
     >
       {children}

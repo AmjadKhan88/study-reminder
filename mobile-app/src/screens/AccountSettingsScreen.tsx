@@ -18,7 +18,14 @@ import { spacing, radius } from "../theme/spacing";
 
 export default function AccountSettingsScreen({ navigation }: any) {
   const { theme } = useAppTheme();
-  const { user, logout, openKeyModal, removeGeminiKey } = useAuth();
+  const {
+    user,
+    logout,
+    openKeyModal,
+    removeGeminiKey,
+    openPineconeModal,
+    removePineconeKey,
+  } = useAuth();
 
   // Change password
   const [currentPassword, setCurrentPassword] = useState("");
@@ -94,6 +101,24 @@ export default function AccountSettingsScreen({ navigation }: any) {
     }
   };
 
+  const handleRemovePinecone = () => {
+    Alert.alert(
+      "Remove Pinecone key?",
+      "Note search and Ask AI stop working until you add a key again.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () =>
+            removePineconeKey().catch(() =>
+              Alert.alert("Error", "Could not remove key."),
+            ),
+        },
+      ],
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: theme.background }}
@@ -126,6 +151,39 @@ export default function AccountSettingsScreen({ navigation }: any) {
             title="Remove API Key"
             variant="secondary"
             onPress={handleRemoveKey}
+            style={{ marginTop: spacing.sm, borderColor: theme.danger }}
+          />
+        )}
+
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+        <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+          Pinecone API Key (Lecture Notes)
+        </Text>
+        <Text
+          style={[
+            styles.sectionSubtitle,
+            {
+              color: user?.hasPineconeKey ? theme.success : theme.textSecondary,
+            },
+          ]}
+        >
+          {user?.hasPineconeKey
+            ? "✓ Connected. Your notes are stored in your own Pinecone."
+            : "Not connected. Needed only if you upload lecture notes."}
+        </Text>
+        <AppButton
+          title={
+            user?.hasPineconeKey ? "Replace Pinecone Key" : "Add Pinecone Key"
+          }
+          variant="secondary"
+          onPress={openPineconeModal}
+        />
+        {user?.hasPineconeKey && (
+          <AppButton
+            title="Remove Pinecone Key"
+            variant="secondary"
+            onPress={handleRemovePinecone}
             style={{ marginTop: spacing.sm, borderColor: theme.danger }}
           />
         )}

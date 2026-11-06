@@ -7,6 +7,7 @@ import { AuthProvider } from "./src/context/AuthContext";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { setupNotificationChannel } from "./src/services/notifications";
 import GeminiKeyModal from "./src/components/GeminiKeyModal";
+import PineconeKeyModal from "./src/components/PineconeKeyModal";
 
 const isExpoGo =
   Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
@@ -37,6 +38,7 @@ export default function App() {
         <AuthProvider>
           <StatusBar style="auto" />
           <RootNavigator />
+          <PineconeKeyModal />
           <GeminiKeyModal />
         </AuthProvider>
       </ThemeProvider>
