@@ -50,7 +50,7 @@ router.patch(
         }
       }),
     body("notificationsEnabled").optional().isBoolean(),
-    body("aiProviderPreference").optional().isIn(["gemini", "openai", "groq"]),
+    body("aiProviderPreference").optional().isIn(["gemini"]),
     body("weeklyGoalDays")
       .optional()
       .isInt({ min: 1, max: 7 })
@@ -116,5 +116,20 @@ router.post(
   validate,
   ctrl.deleteAccount,
 );
+
+router.put(
+  "/gemini-key",
+  requireAuth,
+  [
+    body("apiKey")
+      .isString()
+      .trim()
+      .isLength({ min: 20, max: 300 })
+      .withMessage("Please paste a valid Gemini API key"),
+  ],
+  validate,
+  ctrl.saveGeminiKey,
+);
+router.delete("/gemini-key", requireAuth, ctrl.removeGeminiKey);
 
 module.exports = router;

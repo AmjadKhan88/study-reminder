@@ -1,12 +1,16 @@
-const Course = require('../models/Course.model');
-const LectureNote = require('../models/LectureNote.model');
-const { extractText } = require('./textExtraction.service');
-const { chunkText } = require('./chunking.service');
-const { embedBatch, embedText } = require('./embedding.service');
-const { upsertChunks, searchSimilar } = require('./vectorStore.service');
-const { getAIProvider } = require('./ai');
-const { buildSummaryPrompt, buildRagAnswerPrompt } = require('./ai/promptBuilder');
-const { parseJsonObjectResponse } = require('./ai/parseUtils');
+const Course = require("../models/Course.model");
+const LectureNote = require("../models/LectureNote.model");
+const { extractText } = require("./textExtraction.service");
+const { chunkText } = require("./chunking.service");
+const { embedBatch, embedText } = require("./embedding.service");
+const { upsertChunks, searchSimilar } = require("./vectorStore.service");
+const { getAIProvider } = require("./ai");
+const {
+  buildSummaryPrompt,
+  buildRagAnswerPrompt,
+} = require("./ai/promptBuilder");
+const { parseJsonObjectResponse } = require("./ai/parseUtils");
+const { getUserGeminiKey } = require("./aiKey.service");
 
 const MAX_CHARS_FOR_SUMMARY = 30000;
 
@@ -15,20 +19,24 @@ async function processLectureNote(noteId, fileBuffer) {
   if (!note) return;
 
   try {
+    const apiKey = await getUserGeminiKey(note.user);
+
     console.log(`[note ${noteId}] extracting text...`);
-    const { text: rawText, truncated } = await extractText(fileBuffer, note.fileType);
+    const { text: rawText, truncated } = await extractText(
+      fileBuffer,
+      note.fileType,
+    );
 
     if (!rawText || rawText.trim().length < 50) {
-      throw new Error('Could not extract readable text from this file');
+      throw new Error("Could not extract readable text from this file");
     }
 
     console.log(`[note ${noteId}] chunking ${rawText.length} chars...`);
     const chunks = chunkText(rawText);
-    if (chunks.length === 0) throw new Error('No usable content found in file');
+    if (chunks.length === 0) throw new Error("No usable content found in file");
 
     console.log(`[note ${noteId}] embedding ${chunks.length} chunks...`);
-    const vectors = await embedBatch(chunks);
-    console.log(`[note ${noteId}] embedding vector length: ${vectors[0]?.length}`); // should print 768
+    const vectors = await embedBatch(chunks, apiKey);
 
     console.log(`[note ${noteId}] upserting to Pinecone...`);
     await upsertChunks({
@@ -42,12 +50,13 @@ async function processLectureNote(noteId, fileBuffer) {
 
     console.log(`[note ${noteId}] generating summary...`);
     const course = await Course.findById(note.course);
-    const provider = getAIProvider(course.aiProvider);
-    const summaryPrompt = buildSummaryPrompt({
-      title: note.title,
-      text: rawText.slice(0, MAX_CHARS_FOR_SUMMARY),
-    });
-    const raw = await provider.generateJSON(summaryPrompt);
+    const provider = getAIProvider(course.aiProvider, apiKey);
+    const raw = await provider.generateJSON(
+      buildSummaryPrompt({
+        title: note.title,
+        text: rawText.slice(0, MAX_CHARS_FOR_SUMMARY),
+      }),
+    );
     const parsed = parseJsonObjectResponse(raw);
 
     note.extractedCharCount = rawText.length;
@@ -55,15 +64,22 @@ async function processLectureNote(noteId, fileBuffer) {
     note.chunkCount = chunks.length;
     note.summary = parsed.summary;
     note.keyConcepts = parsed.keyConcepts || [];
-    note.status = 'ready';
+    note.status = "ready";
     await note.save();
     console.log(`[note ${noteId}] done — status: ready`);
   } catch (err) {
-    // Keep provider response details when available to aid diagnosis.
-    const detail = err?.data ? JSON.stringify(err.data) : err?.response?.data ? JSON.stringify(err.response.data) : null;
-    console.error(`[note ${noteId}] processing failed:`, err.message, detail ? `| detail: ${detail}` : '');
+    const detail = err?.data
+      ? JSON.stringify(err.data)
+      : err?.response?.data
+        ? JSON.stringify(err.response.data)
+        : null;
+    console.error(
+      `[note ${noteId}] processing failed:`,
+      err.message,
+      detail ? `| detail: ${detail}` : "",
+    );
 
-    note.status = 'failed';
+    note.status = "failed";
     note.errorMessage = detail ? `${err.message}: ${detail}` : err.message;
     await note.save();
   }
@@ -71,10 +87,17 @@ async function processLectureNote(noteId, fileBuffer) {
 
 async function answerQuestion({ courseId, userId, question, noteId }) {
   const course = await Course.findOne({ _id: courseId, user: userId });
-  if (!course) throw new Error('Course not found');
+  if (!course) throw new Error("Course not found");
 
-  const queryVector = await embedText(question);
-  const matches = await searchSimilar({ userId, courseId, queryVector, limit: 5, noteId });
+  const apiKey = await getUserGeminiKey(userId);
+  const queryVector = await embedText(question, apiKey);
+  const matches = await searchSimilar({
+    userId,
+    courseId,
+    queryVector,
+    limit: 5,
+    noteId,
+  });
 
   if (matches.length === 0) {
     return {
@@ -84,11 +107,18 @@ async function answerQuestion({ courseId, userId, question, noteId }) {
     };
   }
 
-  const provider = getAIProvider(course.aiProvider);
-  const prompt = buildRagAnswerPrompt({ question, contextChunks: matches.map((m) => m.text) });
-  const answer = await provider.generateJSON(prompt);
+  const provider = getAIProvider(course.aiProvider, apiKey);
+  const answer = await provider.generateJSON(
+    buildRagAnswerPrompt({
+      question,
+      contextChunks: matches.map((m) => m.text),
+    }),
+  );
 
-  return { answer, sources: matches.map((m) => ({ noteId: m.noteId, score: m.score })) };
+  return {
+    answer,
+    sources: matches.map((m) => ({ noteId: m.noteId, score: m.score })),
+  };
 }
 
 module.exports = { processLectureNote, answerQuestion };

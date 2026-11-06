@@ -8,6 +8,8 @@ const {
 } = require("../utils/tokens");
 const { sendPasswordResetEmail } = require("../services/email.service");
 const { deleteAccountCompletely } = require("../services/account.service");
+const { encrypt } = require("../utils/crypto");
+const { validateGeminiKey } = require("../services/ai/gemini.service");
 
 const cookieOpts = {
   httpOnly: true,
@@ -21,6 +23,7 @@ function toPublicUser(user) {
     id: user._id,
     name: user.name,
     email: user.email,
+    hasGeminiKey: !!user.hasGeminiKey,
     reminderTime: user.reminderTime,
     timezone: user.timezone,
     notificationsEnabled: user.notificationsEnabled,
@@ -260,6 +263,39 @@ exports.deleteAccount = async (req, res, next) => {
     res.json({
       message: "Your account and all associated data have been deleted.",
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.saveGeminiKey = async (req, res, next) => {
+  try {
+    const apiKey = String(req.body.apiKey || "").trim();
+    const { valid } = await validateGeminiKey(apiKey);
+    if (!valid) {
+      return res.status(400).json({
+        message: "Google rejected that API key. Please check it and try again.",
+      });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { geminiApiKeyEncrypted: encrypt(apiKey), hasGeminiKey: true },
+      { new: true },
+    );
+    res.json({ user: toPublicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.removeGeminiKey = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { geminiApiKeyEncrypted: null, hasGeminiKey: false },
+      { new: true },
+    );
+    res.json({ user: toPublicUser(user) });
   } catch (err) {
     next(err);
   }

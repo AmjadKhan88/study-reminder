@@ -1,6 +1,7 @@
-const StudyPlan = require('../models/StudyPlan.model');
-const Course = require('../models/Course.model');
-const { getAIProvider } = require('./ai');
+const StudyPlan = require("../models/StudyPlan.model");
+const Course = require("../models/Course.model");
+const { getAIProvider } = require("./ai");
+const { getUserGeminiKey } = require("./aiKey.service");
 
 function diffInDays(start, end) {
   return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
@@ -22,7 +23,7 @@ function expandWeeksToDays(weeklyBreakdown, totalDays, startDate) {
         topic: week.topic,
         subtopics: [subtopics[i % subtopics.length]],
         estimatedMinutes: 45,
-        status: 'pending',
+        status: "pending",
       });
       dayCounter++;
     }
@@ -32,35 +33,48 @@ function expandWeeksToDays(weeklyBreakdown, totalDays, startDate) {
 
 async function generateStudyPlanForCourse(courseId, userId) {
   const course = await Course.findOne({ _id: courseId, user: userId });
-  if (!course) throw new Error('Course not found');
+  if (!course) throw new Error("Course not found");
 
-  course.status = 'generating';
+  course.status = "generating";
   await course.save();
 
   try {
     const totalDays = diffInDays(course.startDate, course.endDate);
     const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
 
-    const provider = getAIProvider(course.aiProvider);
+    const apiKey = await getUserGeminiKey(userId);
+    const provider = getAIProvider(course.aiProvider, apiKey);
     const weeklyBreakdown = await provider.generateWeeklyBreakdown({
       title: course.title,
       outline: course.outline,
       totalWeeks,
+      difficulty: course.difficulty,
     });
 
-    const days = expandWeeksToDays(weeklyBreakdown, totalDays, course.startDate);
+    const days = expandWeeksToDays(
+      weeklyBreakdown,
+      totalDays,
+      course.startDate,
+    );
 
     const plan = await StudyPlan.findOneAndUpdate(
       { course: course._id },
-      { user: userId, course: course._id, totalDays, days, generationStatus: 'completed', generationError: null },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      {
+        user: userId,
+        course: course._id,
+        totalDays,
+        days,
+        generationStatus: "completed",
+        generationError: null,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 
-    course.status = 'active';
+    course.status = "active";
     await course.save();
     return plan;
   } catch (err) {
-    course.status = 'draft';
+    course.status = "draft";
     await course.save();
     throw err;
   }
