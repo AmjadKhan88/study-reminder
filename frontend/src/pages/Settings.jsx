@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Trash2, KeyRound } from 'lucide-react';
-import { updateProfile, changePassword, deleteAccount, removeGeminiKey } from '../api/auth.api';
+import { Trash2, KeyRound, Database } from 'lucide-react';
+import { updateProfile, changePassword, deleteAccount, removeGeminiKey, removePineconeKey } from '../api/auth.api';
 import { useAuthStore } from '../store/authStore';
 import Navbar from '../components/Navbar';
 
@@ -11,6 +11,7 @@ export default function Settings() {
   const setUser = useAuthStore((s) => s.setUser);
   const logout = useAuthStore((s) => s.logout);
   const openKeyModal = useAuthStore((s) => s.openKeyModal);
+  const openPineconeModal = useAuthStore((s) => s.openPineconeModal);
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState({
@@ -69,6 +70,17 @@ export default function Settings() {
       const { data } = await removeGeminiKey();
       setUser(data.user);
       toast.success('API key removed');
+    } catch {
+      toast.error('Failed to remove key');
+    }
+  };
+
+  const handleRemovePinecone = async () => {
+    if (!confirm('Remove your Pinecone key? Note search and Ask AI will stop working until you add one again.')) return;
+    try {
+      const { data } = await removePineconeKey();
+      setUser(data.user);
+      toast.success('Pinecone key removed');
     } catch {
       toast.error('Failed to remove key');
     }
@@ -144,6 +156,21 @@ export default function Settings() {
             </button>
             {user?.hasGeminiKey && (
               <button type="button" onClick={handleRemoveKey} className="sp-icon-btn danger">Remove key</button>
+            )}
+          </div>
+        </div>
+
+        <div className="sp-card p-6 flex flex-col gap-3">
+          <h2 className="font-semibold text-sm flex items-center gap-2"><Database size={15} /> Pinecone API key (for lecture notes)</h2>
+          <p className="text-sm" style={{ color: user?.hasPineconeKey ? 'var(--green-dark)' : 'var(--text-muted)' }}>
+            {user?.hasPineconeKey ? '✓ Connected. Your notes are stored in your own Pinecone.' : 'Not connected. Needed only if you upload lecture notes.'}
+          </p>
+          <div className="flex gap-2">
+            <button type="button" onClick={openPineconeModal} className="sp-btn sp-btn-white">
+              {user?.hasPineconeKey ? 'Replace key' : 'Add key'}
+            </button>
+            {user?.hasPineconeKey && (
+              <button type="button" onClick={handleRemovePinecone} className="sp-icon-btn danger">Remove key</button>
             )}
           </div>
         </div>

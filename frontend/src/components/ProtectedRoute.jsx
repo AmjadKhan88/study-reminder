@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import GeminiKeyModal from './GeminiKeyModal';
+import PineconeKeyModal from './PineconeKeyModal';
 
 export default function ProtectedRoute() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -9,6 +10,7 @@ export default function ProtectedRoute() {
     <>
       <Outlet />
       <GeminiKeyModal />
+      <PineconeKeyModal />
     </>
   );
 }

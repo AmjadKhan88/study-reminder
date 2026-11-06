@@ -14,3 +14,6 @@ export const resetPassword = (data) => api.post("/auth/reset-password", data);
 export const changePassword = (data) => api.post("/auth/change-password", data);
 export const deleteAccount = (password) =>
   api.post("/auth/delete-account", { password });
+export const savePineconeKey = (apiKey) =>
+  api.put("/auth/pinecone-key", { apiKey });
+export const removePineconeKey = () => api.delete("/auth/pinecone-key");

@@ -16,6 +16,10 @@ export const useAuthStore = create((set) => ({
   openKeyModal: () => set({ showKeyModal: true }),
   closeKeyModal: () => set({ showKeyModal: false }),
 
+  showPineconeModal: false,
+  openPineconeModal: () => set({ showPineconeModal: true }),
+  closePineconeModal: () => set({ showPineconeModal: false }),
+
   login: (accessToken, user, refreshToken) => {
     if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
     set({ accessToken, user, refreshToken, isAuthenticated: true });

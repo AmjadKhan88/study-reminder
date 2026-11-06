@@ -6,9 +6,13 @@ import { uploadNote, getNotes, deleteNote, askQuestion } from '../api/notes.api'
 import AIContentRenderer from '../components/AIContentRenderer';
 import Navbar from '../components/Navbar';
 import SmoothLoader from '../components/SmoothLoader';
+import { useAuthStore } from '../store/authStore';
+
 
 export default function Notes() {
   const { id } = useParams();
+  const user = useAuthStore((s) => s.user);
+  const openPineconeModal = useAuthStore((s) => s.openPineconeModal);
   const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +43,11 @@ export default function Notes() {
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!user?.hasPineconeKey) {
+      openPineconeModal();
+      e.target.value = '';
+      return;
+    }
     setUploading(true);
     try {
       await uploadNote(id, file);
