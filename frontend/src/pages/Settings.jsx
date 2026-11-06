@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Trash2 } from 'lucide-react';
-import { updateProfile, changePassword, deleteAccount } from '../api/auth.api';
+import { Trash2, KeyRound } from 'lucide-react';
+import { updateProfile, changePassword, deleteAccount, removeGeminiKey } from '../api/auth.api';
 import { useAuthStore } from '../store/authStore';
 import Navbar from '../components/Navbar';
 
@@ -10,12 +10,12 @@ export default function Settings() {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const logout = useAuthStore((s) => s.logout);
+  const openKeyModal = useAuthStore((s) => s.openKeyModal);
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState({
     reminderTime: user?.reminderTime || '18:00',
     notificationsEnabled: user?.notificationsEnabled ?? true,
-    aiProviderPreference: user?.aiProviderPreference || 'gemini',
     weeklyGoalDays: user?.weeklyGoalDays || 5,
     weeklyGoalMinutes: user?.weeklyGoalMinutes || 300,
     timezone: user?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -63,6 +63,17 @@ export default function Settings() {
     }
   };
 
+  const handleRemoveKey = async () => {
+    if (!confirm('Remove your Gemini API key? AI features will stop working until you add a new one.')) return;
+    try {
+      const { data } = await removeGeminiKey();
+      setUser(data.user);
+      toast.success('API key removed');
+    } catch {
+      toast.error('Failed to remove key');
+    }
+  };
+
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
@@ -96,26 +107,7 @@ export default function Settings() {
             Enable notifications
           </label>
 
-          <div>
-            <label className="sp-label">Preferred AI provider</label>
-            <div className="grid grid-cols-3 gap-2">
-              {['gemini', 'openai', 'groq'].map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setProfile({ ...profile, aiProviderPreference: p })}
-                  className="text-sm font-semibold py-2.5 rounded-md border capitalize transition-all"
-                  style={
-                    profile.aiProviderPreference === p
-                      ? { background: 'var(--green-tint)', borderColor: 'var(--green-border)', color: 'var(--green-dark)' }
-                      : { background: '#fff', borderColor: 'var(--border)', color: 'var(--text-muted)' }
-                  }
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-          </div>
+
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -140,6 +132,21 @@ export default function Settings() {
             {savingProfile ? 'Saving...' : 'Save preferences'}
           </button>
         </form>
+
+        <div className="sp-card p-6 flex flex-col gap-3">
+          <h2 className="font-semibold text-sm flex items-center gap-2"><KeyRound size={15} /> Gemini API key</h2>
+          <p className="text-sm" style={{ color: user?.hasGeminiKey ? 'var(--green-dark)' : '#DC2626' }}>
+            {user?.hasGeminiKey ? '✓ Your key is saved and active.' : 'No key added. AI features are disabled.'}
+          </p>
+          <div className="flex gap-2">
+            <button type="button" onClick={openKeyModal} className="sp-btn sp-btn-white">
+              {user?.hasGeminiKey ? 'Replace key' : 'Add key'}
+            </button>
+            {user?.hasGeminiKey && (
+              <button type="button" onClick={handleRemoveKey} className="sp-icon-btn danger">Remove key</button>
+            )}
+          </div>
+        </div>
 
         <form onSubmit={handlePasswordChange} className="sp-card p-6 flex flex-col gap-4">
           <h2 className="font-semibold text-sm">Change password</h2>
